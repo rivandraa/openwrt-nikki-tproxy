@@ -2,6 +2,8 @@ name: Sync from Upstream (by commit)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *'  # setiap hari jam 06:00 WITA
 
 jobs:
   selective-sync:
@@ -105,7 +107,7 @@ jobs:
             done)
             MSG=$(printf "🛎️ *Sync dari upstream selesai*\n\n*File berubah:*\n%s" "$CHANGED")
           else
-            MSG="🛎️ *Sync dari upstream selesai*\n\n*Tidak ada file yang berubah di folder target.*"
+            MSG=$(printf "🛎️ *Sync dari upstream selesai*\n\nTidak ada file yang berubah di folder target.")
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
