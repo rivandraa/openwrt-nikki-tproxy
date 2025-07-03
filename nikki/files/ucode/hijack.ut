@@ -384,7 +384,6 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp ip daddr != {{ fake_ip_range }} counter return
@@ -407,7 +406,6 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp ip daddr != {{ fake_ip_range }} counter return
@@ -445,7 +443,6 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp ip daddr != {{ fake_ip_range }} counter return
@@ -463,7 +460,6 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp ip daddr != {{ fake_ip_range }} counter return
@@ -485,3 +481,4 @@ table inet nikki {
 
 include "/etc/nikki/nftables/reserved_ip.nft"
 include "/etc/nikki/nftables/reserved_ip6.nft"
+

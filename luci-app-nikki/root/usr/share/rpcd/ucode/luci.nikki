@@ -79,3 +79,4 @@ const methods = {
 };
 
 return { 'luci.nikki': methods };
+

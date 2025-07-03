@@ -198,3 +198,4 @@ config['geo-auto-update'] = uci_bool(uci.get('nikki', 'mixin', 'geox_auto_update
 config['geo-update-interval'] = uci_int(uci.get('nikki', 'mixin', 'geox_update_interval'));
 
 print(trim_all(config));
+

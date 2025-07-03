@@ -174,7 +174,6 @@ return view.extend({
         // --- Core Status (menampilkan status aktif/tidaknya service)
         o = s.option(form.DummyValue, '_core_status', _('Core Status'));
         o.cfgvalue = () => renderStatus(running);
-
         poll.add(function () {
             return L.resolveDefault(nikki.status()).then(function (running) {
                 updateStatus(document.getElementById('core_status'), running);
