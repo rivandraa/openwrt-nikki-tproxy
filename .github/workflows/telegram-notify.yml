@@ -32,7 +32,7 @@ jobs:
           COMMIT_URL="https://github.com/${REPO}/commit/${SHA}"
           
           if [ "$EVENT_NAME" = "push" ]; then
-            MESSAGE="✅ <b>Push Detected (Privat)</b>\n📦 Repo: ${REPO}\n👤 User: ${ACTOR}\n🔁 Commit:\n<code>${COMMIT_MSG}</code>\n🔗 <i>Link hanya untuk user dengan akses</i>"
+            MESSAGE="✅ <b>Push Detected (Privat)</b>\n📦 Repo: ${REPO}\n👤 User: ${ACTOR}\n🔁 Commit:\n<code>${COMMIT_MSG}</code>"
           elif [ "$EVENT_NAME" = "pull_request" ]; then
             PR_TITLE="${{ github.event.pull_request.title }}"
             PR_URL="${{ github.event.pull_request.html_url }}"
