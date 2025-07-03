@@ -52,25 +52,30 @@ if (uci_bool(uci.get('nikki', 'mixin', 'authentication'))) {
 
 config['tun'] = {};
 if (uci.get('nikki', 'proxy', 'tcp_mode') == 'tun' || uci.get('nikki', 'proxy', 'udp_mode') == 'tun') {
-	config['tun']['enable'] = true;
-	config['tun']['auto-route'] = false;
-	config['tun']['auto-redirect'] = false;
-	config['tun']['auto-detect-interface'] = false;
+	config['tun']['enable'] = uci_bool(uci.get('nikki', 'mixin', 'tun_config'));
+	config['tun']['auto-route'] = uci_bool(uci.get('nikki', 'mixin', 'auto_route'));
+	config['tun']['auto-redirect'] = uci_bool(uci.get('nikki', 'mixin', 'auto_redirect'));
+	config['tun']['auto-detect-interface'] = uci_bool(uci.get('nikki', 'mixin', 'auto_detect_interface'));
+	config['tun']['strict-route'] = uci_bool(uci.get('nikki', 'mixin', 'strict_route'));
 	config['tun']['device'] = uci.get('nikki', 'mixin', 'tun_device');
 	config['tun']['stack'] = uci.get('nikki', 'mixin', 'tun_stack');
 	config['tun']['mtu'] = uci_int(uci.get('nikki', 'mixin', 'tun_mtu'));
 	config['tun']['gso'] = uci_bool(uci.get('nikki', 'mixin', 'tun_gso'));
 	config['tun']['gso-max-size'] = uci_int(uci.get('nikki', 'mixin', 'tun_gso_max_size'));
+	config['tun']['udp-timeout'] = uci_int(uci.get('nikki', 'mixin', 'udp_timeout'));
 	config['tun']['endpoint-independent-nat'] = uci_bool(uci.get('nikki', 'mixin', 'tun_endpoint_independent_nat'));
 	if (uci_bool(uci.get('nikki', 'mixin', 'tun_dns_hijack'))) {
 		config['tun']['dns-hijack'] = uci_array(uci.get('nikki', 'mixin', 'tun_dns_hijacks'));
+	}
+	if (uci_bool(uci.get('nikki', 'mixin', 'add_route_list'))) {
+	    config['tun']['route-address'] = uci_array(uci.get('nikki', 'mixin', 'auto_route_list'));
 	}
 } else {
 	config['tun']['enable'] = false;
 }
 
 config['dns'] = {};
-config['dns']['enable'] = true;
+config['dns']['enable'] = uci_bool(uci.get('nikki', 'mixin', 'dns_config'));
 config['dns']['listen'] = uci.get('nikki', 'mixin', 'dns_listen');
 config['dns']['ipv6'] = uci_bool(uci.get('nikki', 'mixin', 'dns_ipv6'));
 config['dns']['enhanced-mode'] = uci.get('nikki', 'mixin', 'dns_mode');
@@ -84,7 +89,7 @@ config['dns']['respect-rules'] = uci_bool(uci.get('nikki', 'mixin', 'dns_respect
 config['dns']['prefer-h3'] = uci_bool(uci.get('nikki', 'mixin', 'dns_doh_prefer_http3'));
 config['dns']['use-system-hosts'] = uci_bool(uci.get('nikki', 'mixin', 'dns_system_hosts'));
 config['dns']['use-hosts'] = uci_bool(uci.get('nikki', 'mixin', 'dns_hosts'));
-if (uci_bool(uci.get('nikki', 'mixin', 'hosts'))) {
+if (uci_bool(uci.get('nikki', 'mixin', 'dns_hosts'))) {
 	config['hosts'] = {};
 	uci.foreach('nikki', 'hosts', (section) => {
 		if (!uci_bool(section.enabled)) {
@@ -95,10 +100,10 @@ if (uci_bool(uci.get('nikki', 'mixin', 'hosts'))) {
 }
 if (uci_bool(uci.get('nikki', 'mixin', 'dns_nameserver'))) {
 	config['dns']['default-nameserver'] = [];
-	config['dns']['proxy-server-nameserver'] = [];
-	config['dns']['direct-nameserver'] = [];
 	config['dns']['nameserver'] = [];
 	config['dns']['fallback'] = [];
+	config['dns']['proxy-server-nameserver'] = [];
+	config['dns']['direct-nameserver'] = [];
 	uci.foreach('nikki', 'nameserver', (section) => {
 		if (!uci_bool(section.enabled)) {
 			return;
@@ -193,3 +198,4 @@ config['geo-auto-update'] = uci_bool(uci.get('nikki', 'mixin', 'geox_auto_update
 config['geo-update-interval'] = uci_int(uci.get('nikki', 'mixin', 'geox_update_interval'));
 
 print(trim_all(config));
+

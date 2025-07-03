@@ -23,7 +23,7 @@ return view.extend({
 
         m = new form.Map('nikki');
 
-        s = m.section(form.NamedSection, 'mixin', 'mixin', _('Mixin Option'));
+        s = m.section(form.NamedSection, 'mixin', 'mixin', _('🧩 Mixin Option'));
 
         s.tab('general', _('General Config'));
 
@@ -86,10 +86,12 @@ return view.extend({
         o.value('1', _('Enable'));
 
         o = s.taboption('general', form.Value, 'tcp_keep_alive_idle', _('TCP Keep Alive Idle'));
+        o.depends('disable_tcp_keep_alive', '0')
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
-
+        
         o = s.taboption('general', form.Value, 'tcp_keep_alive_interval', _('TCP Keep Alive Interval'));
+        o.depends('disable_tcp_keep_alive', '0')
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
 
@@ -185,6 +187,12 @@ return view.extend({
 
         s.tab('tun', _('TUN Config'));
 
+        o = s.taboption('tun', form.ListValue, 'tun_config', _('TUN Status'))
+        o.optional = false
+        o.default = '1';
+        o.value('1', _('Enable'))
+        o.value('0', _('Disable'))
+
         o = s.taboption('tun', form.Value, 'tun_device', '*' + ' ' + _('Device Name'));
         o.placeholder = _('Unmodified');
         o.rmempty = false;
@@ -195,6 +203,55 @@ return view.extend({
         o.value('system', 'System');
         o.value('gvisor', 'gVisor');
         o.value('mixed', 'Mixed');
+        
+        o = s.taboption('tun', form.ListValue, 'auto_route', _('Auto Route'))
+        o.optional = false
+        o.default = '1';
+        o.placeholder = _('Unmodified')
+        o.value('1', _('Enable'))
+        o.value('0', _('Disable'))
+        
+        o = s.taboption('tun', form.Flag, 'add_route_list', _('Add Route'));
+        o.rmempty = false;
+        o.depends('auto_route', '1')
+        
+        o = s.taboption('tun', form.DynamicList, 'auto_route_list', _('Route List'));
+        o.retain = true;
+        o.depends('add_route_list', '1');
+        o.value('0.0.0.0/1');
+        o.value('128.0.0.0/1');
+        o.value('::/1');
+        o.value('8000::/1');
+        
+        o.validate = function(section_id) {
+            var addRoute = this.section.children.find(x => x.option === 'add_route_list');
+            var enabled = addRoute && addRoute.formvalue(section_id) === '1';
+        
+            var val = this.formvalue(section_id); // Ini array
+        
+            if (enabled && (!val || val.length === 0)) {
+                return _('Cannot be empty when the option is active.');
+            }
+        
+            return true;
+        };
+
+        o = s.taboption('tun', form.ListValue, 'strict_route', _('Strict Route'));
+        o.optional = false;
+        o.placeholder = _('Unmodified');
+        o.value('1', _('Enable'));
+        o.value('0', _('Disable'));
+
+        o = s.taboption('tun', form.ListValue, 'auto_redirect', _('Auto Redirect'));
+        o.optional = false;
+        o.placeholder = _('Unmodified');
+        o.value('0', _('Disable'));
+
+        o = s.taboption('tun', form.ListValue, 'auto_detect_interface', _('Auto Detect Interface'));
+        o.optional = false;
+        o.placeholder = _('Unmodified');
+        o.value('1', _('Enable'));
+        o.value('0', _('Disable'));
 
         o = s.taboption('tun', form.Value, 'tun_mtu', _('MTU'));
         o.datatype = 'uinteger';
@@ -207,8 +264,13 @@ return view.extend({
         o.value('1', _('Enable'));
 
         o = s.taboption('tun', form.Value, 'tun_gso_max_size', _('GSO Max Size'));
+        o.depends('tun_gso', '1')
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
+
+        o = s.taboption('tun', form.Value, 'udp_timeout', _('UDP Timeout'));
+        o.datatype = 'uinteger';
+        o.placeholder = _('Unmodified (Default 300)');
 
         o = s.taboption('tun', form.ListValue, 'tun_endpoint_independent_nat', _('Endpoint Independent NAT'));
         o.optional = true;
@@ -225,12 +287,61 @@ return view.extend({
         o.value('tcp://any:53');
         o.value('udp://any:53');
 
+        o.validate = function(section_id) {
+            var tundnshijack = this.section.children.find(x => x.option === 'tun_dns_hijack');
+            var enabled = tundnshijack && tundnshijack.formvalue(section_id) === '1';
+        
+            var val = this.formvalue(section_id); // Ini array
+        
+            if (enabled && (!val || val.length === 0)) {
+                return _('Cannot be empty when the option is active.');
+            }
+        
+            return true;
+        };
+
         s.tab('dns', _('DNS Config'));
 
-        o = s.taboption('dns', form.Value, 'dns_listen', '*' + ' ' + _('DNS Listen'));
-        o.datatype = 'ipaddrport(1)';
-        o.placeholder = _('Unmodified');
-        o.rmempty = false;
+        o = s.taboption('dns', form.ListValue, 'dns_config', _('DNS Status'))
+        o.optional = false
+        o.default = '1';
+        o.value('1', _('Enable'))
+        o.value('0', _('Disable'))
+
+        // Opsi dropdown untuk memilih DNS Listen Port
+        var portMode = s.taboption('dns', form.ListValue, 'dns_listen_port_mode', '*' + ' ' + _('DNS Listen Port'));
+        portMode.default = '1053';
+        portMode.rmempty = false;
+        portMode.value('1053', '1053');
+        portMode.value('5053', '5053');
+        portMode.value('5453', '5453');
+        portMode.value('custom', _('Custom'));
+        
+        // Input custom port, tampil hanya saat mode 'custom' dipilih
+        var portCustom = s.taboption('dns', form.Value, 'dns_listen_port_custom', _('Custom Port'));
+        portCustom.datatype = 'port';
+        portCustom.placeholder = '5353';
+        portCustom.depends('dns_listen_port_mode', 'custom');
+        
+        // Baca konfigurasi dan ambil port, default 1053
+        portMode.cfgvalue = function(section_id) {
+            var v = m.uci.get('nikki', section_id, 'dns_listen');
+            if (!v) return '1053';
+        
+            var match = v.match(/^0\.0\.0\.0:(\d+)$/);
+            if (!match) return '1053';
+        
+            var port = match[1];
+            return ['1053', '5053', '5453'].includes(port) ? port : 'custom';
+        };
+        
+        // Simpan konfigurasi port lengkap
+        portMode.write = function(section_id, value) {
+            var port = value === 'custom' 
+                ? (m.uci.get('nikki', section_id, 'dns_listen_port_custom') || '5353') 
+                : value;
+            m.uci.set('nikki', section_id, 'dns_listen', '0.0.0.0:' + port);
+        };
 
         o = s.taboption('dns', form.ListValue, 'dns_ipv6', 'IPv6');
         o.optional = true;
@@ -291,24 +402,56 @@ return view.extend({
         o.value('0', _('Disable'));
         o.value('1', _('Enable'));
 
-        o = s.taboption('dns', form.Flag, 'hosts', _('Overwrite Hosts'));
-        o.rmempty = false;
-
         o = s.taboption('dns', form.SectionValue, '_hosts', form.TableSection, 'hosts', _('Edit Hosts'));
         o.retain = true;
-        o.depends('hosts', '1');
+        o.depends('dns_hosts', '1');
 
         o.subsection.addremove = true;
         o.subsection.anonymous = true;
         o.subsection.sortable = true;
 
+        // Field dalam subsection (hanya deklarasi sekali)
         so = o.subsection.option(form.Flag, 'enabled', _('Enable'));
-        so.rmempty = false;
-
+        so.default = '1';         // ✅ Auto-enable saat ditambah
+        so.rmempty = false;       // ✅ Tidak boleh dikosongkan
+        
         so = o.subsection.option(form.Value, 'domain_name', _('Domain Name'));
         so.rmempty = false;
-
-        so = o.subsection.option(form.DynamicList, 'ip', 'IP');
+        
+        so = o.subsection.option(form.DynamicList, 'ip', _('IP'));
+        so.rmempty = false;
+        
+        // ✅ Validasi utama untuk semua entri di TableSection
+        o.validate = function (section_id, value, formvalue) {
+            const map = this.map;
+            const dns_hosts_enabled = formvalue['dns_dns_hosts'] === '1';
+        
+            if (dns_hosts_enabled) {
+                const hostSections = Object.keys(map.data.hosts || {});
+        
+                if (hostSections.length === 0) {
+                    return _('At least one host entry is required when Use Hosts is enabled.');
+                }
+        
+                for (const sid of hostSections) {
+                    const entry = map.data.hosts[sid];
+        
+                    if (!entry || entry.enabled !== '1') {
+                        return _('All entries must be enabled when Use Hosts is enabled.');
+                    }
+        
+                    if (!entry.domain_name || entry.domain_name.trim() === '') {
+                        return _('Each host entry must have a domain name.');
+                    }
+        
+                    if (!Array.isArray(entry.ip) || entry.ip.length === 0) {
+                        return _('Each host entry must have at least one IP address.');
+                    }
+                }
+            }
+        
+            return true;
+        };
 
         o = s.taboption('dns', form.Flag, 'dns_nameserver', _('Overwrite Nameserver'));
         o.rmempty = false;
@@ -326,10 +469,10 @@ return view.extend({
 
         so = o.subsection.option(form.ListValue, 'type', _('Type'));
         so.value('default-nameserver');
-        so.value('proxy-server-nameserver');
-        so.value('direct-nameserver');
         so.value('nameserver');
         so.value('fallback');
+        so.value('proxy-server-nameserver');
+        so.value('direct-nameserver');
 
         so = o.subsection.option(form.DynamicList, 'nameserver', _('Nameserver'));
 
@@ -570,3 +713,4 @@ return view.extend({
         return m.render();
     }
 });
+

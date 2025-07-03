@@ -18,15 +18,16 @@ return view.extend({
     render: function (data) {
         const hosts = data[1].hosts;
         const networks = data[2];
-        const users = data[3]?.users ?? [];
-        const groups = data[3]?.groups ?? [];
-        const cgroups = data[3]?.cgroups ?? [];
+        const d3 = data[3] || {};
+        const users = d3.users || [];
+        const groups = d3.groups || [];
+        const cgroups = d3.cgroups || [];
 
         let m, s, o, so;
 
         m = new form.Map('nikki');
 
-        s = m.section(form.NamedSection, 'proxy', 'proxy', _('Proxy Config'));
+        s = m.section(form.NamedSection, 'proxy', 'proxy', _('🚀 Proxy Config'));
 
         s.tab('proxy', _('Proxy Config'));
 
@@ -129,40 +130,34 @@ return view.extend({
         so.rmempty = false;
 
         so = o.subsection.option(form.DynamicList, 'ip', 'IP');
-
         for (const mac in hosts) {
-            const host = hosts[mac];
-            for (const ip of host.ipaddrs) {
-                const hint = host.name ?? mac;
-                so.value(ip, hint ? '%s (%s)'.format(ip, hint) : ip);
-            };
-        };
+          const host = hosts[mac];
+          for (const ip of host.ipaddrs) {
+            const hint = host.name != null ? host.name : mac;
+            so.value(ip, hint ? '%s (%s)'.format(ip, hint) : ip);
+          }
+        }
 
         so = o.subsection.option(form.DynamicList, 'ip6', 'IP6');
-
         for (const mac in hosts) {
-            const host = hosts[mac];
-            for (const ip of host.ip6addrs) {
-                const hint = host.name ?? mac;
-                so.value(ip, hint ? '%s (%s)'.format(ip, hint) : ip);
-            };
-        };
+          const host = hosts[mac];
+          for (const ip of host.ip6addrs) {
+            const hint = host.name != null ? host.name : mac;
+            so.value(ip, hint ? '%s (%s)'.format(ip, hint) : ip);
+          }
+        }
 
         so = o.subsection.option(form.DynamicList, 'mac', 'MAC');
-
         for (const mac in hosts) {
-            const host = hosts[mac];
-            const hint = host.name ?? host.ipaddrs[0];
-            so.value(mac, hint ? '%s (%s)'.format(mac, hint) : mac);
-        };
+          const host = hosts[mac];
+          const hint = host.name != null ? host.name : host.ipaddrs[0];
+          so.value(mac, hint ? '%s (%s)'.format(mac, hint) : mac);
+        }
 
         so = o.subsection.option(form.Flag, 'proxy', _('Proxy'));
         so.rmempty = false;
 
         s.tab('bypass', _('Bypass'));
-
-        o = s.taboption('bypass', form.Flag, 'bypass_china_mainland_ip', _('Bypass China Mainland IP'));
-        o.rmempty = false;
 
         o = s.taboption('bypass', form.Value, 'proxy_tcp_dport', _('Destination TCP Port to Proxy'));
         o.rmempty = false;
