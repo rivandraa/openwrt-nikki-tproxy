@@ -24,7 +24,7 @@ return view.extend({
 
         m = new form.Map('nikki');
 
-        s = m.section(form.NamedSection, 'editor', 'editor', _('📝 Editor'));
+        s = m.section(form.NamedSection, 'editor', 'editor', _('Editor'));
 
         o = s.option(form.ListValue, '_file', _('Choose File'));
         o.optional = true;
@@ -73,13 +73,10 @@ return view.extend({
 
         return m.render();
     },
-    handleSave: function(ev) {
-        return this.super('handleSave', [ev]).finally(() => {
-            if (typeof nikki === 'object') {
-                return (this.mode === '0') ? nikki.reload() : nikki.restart();
-            }
+    handleSaveApply: function (ev, mode) {
+        return this.handleSave(ev).finally(function () {
+            return mode === '0' ? nikki.reload() : nikki.restart();
         });
     },
-    handleSaveApply: null,
     handleReset: null
 });
