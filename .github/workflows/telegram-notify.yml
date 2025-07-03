@@ -1,0 +1,62 @@
+name: Telegram Notification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, closed]
+  release:
+    types: [published]
+
+jobs:
+  telegram:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Escape Commit Message for HTML
+        id: escape
+        run: |
+          RAW_COMMIT_MSG="${{ github.event.head_commit.message }}"
+          ESCAPED_COMMIT_MSG=$(echo "$RAW_COMMIT_MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+          echo "escaped_commit_message=$ESCAPED_COMMIT_MSG" >> $GITHUB_OUTPUT
+
+      - name: Generate Telegram Message
+        id: format
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          REPO="${{ github.repository }}"
+          ACTOR="${{ github.actor }}"
+          SHA="${{ github.sha }}"
+          COMMIT_MSG="${{ steps.escape.outputs.escaped_commit_message }}"
+          COMMIT_URL="https://github.com/${REPO}/commit/${SHA}"
+          
+          if [ "$EVENT_NAME" = "push" ]; then
+            MESSAGE="✅ <b>Push Detected (Privat)</b>\n📦 Repo: ${REPO}\n👤 User: ${ACTOR}\n🔁 Commit:\n<code>${COMMIT_MSG}</code>\n🔗 <i>Link hanya untuk user dengan akses</i>"
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            PR_URL="${{ github.event.pull_request.html_url }}"
+            PR_STATE="${{ github.event.action }}"
+            MESSAGE="📣 <b>PR ${PR_STATE^}</b>\n📦 Repo: ${REPO}\n👤 User: ${ACTOR}\n📝 Judul: <code>${PR_TITLE}</code>\n🔗 <i>PR internal</i>"
+          elif [ "$EVENT_NAME" = "release" ]; then
+            REL_NAME="${{ github.event.release.name }}"
+            REL_TAG="${{ github.event.release.tag_name }}"
+            MESSAGE="🚀 <b>Release Baru</b>\n📦 Repo: ${REPO}\n🏷️ Tag: <code>${REL_TAG}</code>\n📄 Nama: <code>${REL_NAME}</code>\n🔗 <i>Privat Release</i>"
+          else
+            MESSAGE="📌 Event GitHub tidak dikenal di repo privat"
+          fi
+
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram Notification
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="${{ steps.format.outputs.message }}" \
+            -d parse_mode=HTML \
+            -d disable_web_page_preview=true

@@ -1,0 +1,96 @@
+name: release-nikki-tproxy-terbaru
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.arch }}-${{ matrix.branch }} build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - aarch64_generic
+        branch:
+          - openwrt-24.10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build package
+        uses: openwrt/gh-action-sdk@main
+        env:
+          ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
+          FEEDNAME: nikki
+          PACKAGES: luci-app-nikki
+          NO_REFRESH_CHECK: true
+
+      - name: Extract package versions
+        id: extract_version
+        run: |
+          set -e
+          PKG_DIR="bin/packages/${{ matrix.arch }}/nikki"
+
+          # luci-app-nikki version
+          PKG_FILE_LUCI=$(find "$PKG_DIR" -name 'luci-app-nikki_*.ipk' | head -n 1)
+          if [[ -z "$PKG_FILE_LUCI" ]]; then
+            echo "❌ luci-app-nikki package file not found!"
+            exit 1
+          fi
+          VERSION_LUCI=$(basename "$PKG_FILE_LUCI" | sed -E 's/^luci-app-nikki_([^_]+)_.*\.ipk/\1/')
+          echo "version_luci=$VERSION_LUCI" >> $GITHUB_OUTPUT
+
+          # nikki version
+          PKG_FILE_NIKKI=$(find "$PKG_DIR" -name 'nikki_*.ipk' | head -n 1)
+          if [[ -z "$PKG_FILE_NIKKI" ]]; then
+            echo "❌ nikki package file not found!"
+            exit 1
+          fi
+          VERSION_NIKKI=$(basename "$PKG_FILE_NIKKI" | sed -E 's/^nikki_([^_]+)_.*\.ipk/\1/')
+          echo "version_nikki=$VERSION_NIKKI" >> $GITHUB_OUTPUT
+
+      - name: Create release filename and tag
+        id: release_meta
+        run: |
+          VERSION_LUCI="${{ steps.extract_version.outputs.version_luci }}"
+          VERSION_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
+
+          REL_NAME="Nikki-TProxy-${VERSION_LUCI}"
+          ZIP_NAME="Nikki-TProxy-${VERSION_LUCI}_Nikki-${VERSION_NIKKI}_${{ matrix.arch }}-${{ matrix.branch }}"
+          TAG_NAME=$(echo "$REL_NAME" | tr ' ~' '--')
+
+          echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
+          echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
+          echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Compress .ipk files
+        run: |
+          mkdir -p output
+          cp bin/packages/${{ matrix.arch }}/nikki/*.ipk output/
+          zip -j ${{ steps.release_meta.outputs.zipname }}.zip output/*.ipk
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tagname }}
+          release_name: ${{ steps.release_meta.outputs.relname }}
+          draft: false
+          prerelease: false
+
+      - name: Upload ZIP to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.release_meta.outputs.zipname }}.zip
+          asset_name: ${{ steps.release_meta.outputs.zipname }}.zip
+          asset_content_type: application/zip
