@@ -1,4 +1,4 @@
-name: Sync from Upstream (by commit)
+name: Sync (by commit)
 
 on:
   workflow_dispatch:
