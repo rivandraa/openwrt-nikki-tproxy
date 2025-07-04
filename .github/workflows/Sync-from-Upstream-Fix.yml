@@ -2,8 +2,6 @@ name: Selective Sync from Upstream
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 22 * * *'  # setiap hari jam 06:00 WITA
 
 jobs:
   selective-sync:
