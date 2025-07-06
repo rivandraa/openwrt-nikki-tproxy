@@ -102,29 +102,24 @@ jobs:
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
-            -F caption="🎉 *Release Nikki-TProxy Baru*
+            -F caption="🎉 *Release Nikki TProxy Mod*
 
-📦 Arch: \`${{ matrix.arch }}\`
-🌿 Branch: \`${{ matrix.branch }}\`
-🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`" \
-            -F parse_mode="Markdown"
-
-      - name: Upload ZIP to repo rivandraa/nikki_tproxy
+        📦 Arch: \`${{ matrix.arch }}\`
+        🌿 Branch: \`${{ matrix.branch }}\`
+        🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+        🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`" \
+                    -F parse_mode="Markdown"
+      
+      - name: Upload ZIP to GitHub Release (rivandraa/nikki_tproxy)
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: rivandraa/nikki_tproxy
+          tag_name: ${{ steps.release_meta.outputs.tagname }}
+          name: ${{ steps.release_meta.outputs.relname }}
+          files: ${{ steps.release_meta.outputs.zipname }}.zip
         env:
-          TARGET_REPO_PAT: ${{ secrets.TARGET_REPO_PAT }}
-        run: |
-          git clone https://x-access-token:${TARGET_REPO_PAT}@github.com/rivandraa/nikki_tproxy.git target-repo
-          cd target-repo
+          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_PAT }}
 
-          BRANCH=main
-          git checkout $BRANCH
-
-          mkdir -p releases/${{ matrix.arch }}-${{ matrix.branch }}
-          cp ../${{ steps.release_meta.outputs.zipname }}.zip releases/${{ matrix.arch }}-${{ matrix.branch }}/
-
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
 
           git add releases/
           git commit -m "🚀 Add release ${{ steps.release_meta.outputs.zipname }}"
