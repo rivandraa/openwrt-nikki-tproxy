@@ -103,12 +103,12 @@ jobs:
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
             -F caption="🎉 *Release Nikki TProxy Mod*
-
-        📦 Arch: \`${{ matrix.arch }}\`
-        🌿 Branch: \`${{ matrix.branch }}\`
-        🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-        🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`" \
-                    -F parse_mode="Markdown"
+      
+          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+          📦 Arch: \`${{ matrix.arch }}\`
+          🌿 Branch: \`${{ matrix.branch }}\`" \
+                -F parse_mode="Markdown"
       
       - name: Upload ZIP to GitHub Release (rivandraa/nikki_tproxy)
         uses: softprops/action-gh-release@v2
@@ -120,7 +120,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TARGET_REPO_PAT }}
 
-
-          git add releases/
-          git commit -m "🚀 Add release ${{ steps.release_meta.outputs.zipname }}"
-          git push origin $BRANCH
+            git add releases/
+            git commit -m "🚀 Add release ${{ steps.release_meta.outputs.zipname }}"
+            git push origin $BRANCH
