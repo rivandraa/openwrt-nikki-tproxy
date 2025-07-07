@@ -143,7 +143,7 @@ return view.extend({
                             notif.innerHTML = `
                                 <span>
                                     New version available: 
-                                    <a href="https://github.com/rivandraa/nikki_tproxy/releases/latest" target="_blank" style="color: blue;">
+                                    <a href="https://t.me/NikkiTProxy" target="_blank" style="color: blue;">
                                         ${data.tag_name}
                                     </a>
                                 </span>
@@ -161,7 +161,7 @@ return view.extend({
         
             // Tampilkan versi saat ini (link ke rilis)
             return Promise.resolve(
-                `<a href="https://github.com/rivandraa/nikki_tproxy/releases/latest" target="_blank">${appVersion}</a>`
+                `<a href="https://t.me/NikkiTProxy" target="_blank">${appVersion}</a>`
             );
         };
         o.write = () => {};
