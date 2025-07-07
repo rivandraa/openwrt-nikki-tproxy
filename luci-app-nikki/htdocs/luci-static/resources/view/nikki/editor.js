@@ -54,25 +54,30 @@ return view.extend({
             return true;
         };
         o.onchange = function (event, section_id, value) {
-            return L.resolveDefault(fs.read_direct(value), '').then(function (content) {
-                m.lookupOption('_file_content', section_id)[0].getUIElement(section_id).setValue(content);
-            });
+          return L.resolveDefault(fs.read_direct(value), '').then(function (content) {
+            m.lookupOption('nikki.editor._file_content')[0]
+              .getUIElement('editor')
+              .setValue(content);
+          });
         };
-
-        o = s.option(form.TextValue, '_file_content',);
+    
+        // Editor isi file
+        o = s.option(form.TextValue, '_file_content');
         o.rows = 25;
         o.wrap = false;
+    
         o.write = function (section_id, formvalue) {
-            const path = m.lookupOption('_file', section_id)[0].formvalue(section_id);
-            return fs.write(path, formvalue);
+          const path = m.lookupOption('nikki.editor._file')[0].formvalue('editor');
+          return fs.write(path, formvalue);
         };
+    
         o.remove = function (section_id) {
-            const path = m.lookupOption('_file', section_id)[0].formvalue(section_id);
-            return fs.write(path);
+          const path = m.lookupOption('nikki.editor._file')[0].formvalue('editor');
+          return fs.write(path);
         };
-
+    
         return m.render();
-    },
+      },
     handleSave: function(ev) {
         return this.super('handleSave', [ev]).finally(() => {
             if (typeof nikki === 'object') {
