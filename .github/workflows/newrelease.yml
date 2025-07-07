@@ -115,11 +115,8 @@ jobs:
         with:
           repository: rivandraa/nikki_tproxy
           tag_name: ${{ steps.release_meta.outputs.tagname }}
-          name: ${{ steps.release_meta.outputs.relname }}
+          name: "Release ${{ steps.release_meta.outputs.tagname }}"  # Tanpa emoji
           files: ${{ steps.release_meta.outputs.zipname }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TARGET_REPO_PAT }}
 
-            git add releases/
-            git commit -m "🚀 Add release ${{ steps.release_meta.outputs.zipname }}"
-            git push origin $BRANCH
