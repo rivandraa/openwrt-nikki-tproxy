@@ -107,8 +107,8 @@ jobs:
             -F document=@"$FILE;filename=$(basename "$FILE")" \
             -F caption="🎉 *Release Nikki TProxy Mod*
 
-🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
-📦 Arch: \`${{ matrix.arch }}\`
-🌿 Branch: \`${{ matrix.branch }}\`" \
+            🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+            🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+            📦 Arch: \`${{ matrix.arch }}\`
+            🌿 Branch: \`${{ matrix.branch }}\`" \
             -F parse_mode="Markdown"
