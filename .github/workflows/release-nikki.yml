@@ -89,10 +89,13 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
+          TAGNAME="${{ steps.release_meta.outputs.tagname }}"
+          TAG_ESCAPED=$(echo "$TAGNAME" | tr '.-' '__')
+
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE;filename=$(basename "$FILE")" \
-            -F caption="🎉 *Release Nikki TProxy Mod*
+            -F caption="🎉 *Release #${TAG_ESCAPED}*
 
             🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
             🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
