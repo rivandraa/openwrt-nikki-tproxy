@@ -68,33 +68,20 @@ jobs:
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
 
-      - name: Compress .ipk files
+      - name: Compress .ipk files to ZIP
         run: |
           mkdir -p output
           cp bin/packages/${{ matrix.arch }}/nikki/*.ipk output/
           zip -j ${{ steps.release_meta.outputs.zipname }}.zip output/*.ipk
 
-      - name: Get existing release upload URL
-        id: get_release
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const release = await github.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: '${{ steps.release_meta.outputs.tagname }}'
-            });
-            core.setOutput('upload_url', release.data.upload_url);
-
       - name: Upload ZIP to GitHub Release
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tagname }}
+          name: ${{ steps.release_meta.outputs.relname }}
+          files: ${{ steps.release_meta.outputs.zipname }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ steps.release_meta.outputs.zipname }}.zip
-          asset_name: ${{ steps.release_meta.outputs.zipname }}.zip
-          asset_content_type: application/zip
 
       - name: Upload ZIP to Telegram Channel
         env:
