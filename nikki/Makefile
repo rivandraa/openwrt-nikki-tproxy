@@ -43,6 +43,8 @@ endef
 define Package/nikki/conffiles
 /etc/config/nikki
 /etc/nikki/mixin.yaml
+/etc/nikki/nftables/reserved_ip.nft
+/etc/nikki/nftables/reserved_ip6.nft
 endef
 
 define Package/nikki/install
@@ -99,9 +101,12 @@ endef
 
 define Package/nikki/postinst
 #!/bin/sh
-if [ -z $${IPKG_INSTROOT} ]; then
-  ln -sf / /www/tinyfm/rootfs
+if [ -z "$${IPKG_INSTROOT}" ]; then
+  if [ -d /www/tinyfm ] && [ ! -e /www/tinyfm/rootfs ]; then
+    ln -sf / /www/tinyfm/rootfs
+  fi
 fi
+exit 0
 endef
 
 define Build/Prepare
