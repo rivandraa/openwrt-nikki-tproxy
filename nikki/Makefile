@@ -19,6 +19,7 @@ PKG_BUILD_FLAGS:=no-mips16
 PKG_BUILD_VERSION:=v1.19.11
 PKG_BUILD_TIME:=$(shell date -u -Iseconds)
 PKG_VERSION:=$(PKG_SOURCE_DATE)-$(PKG_BUILD_VERSION)-Mod
+PKGARCH:=$(ARCH)
 
 GO_PKG:=github.com/metacubex/mihomo
 GO_PKG_LDFLAGS_X:= \
@@ -29,6 +30,7 @@ GO_PKG_LDFLAGS_X:= \
 
 GO_PKG_BUILD_PURE_GO:=0
 GO_PKG_LDFLAGS += -s -w
+GO_PKG_TARGET_BUILD_DEPENDS:=$(GO_PKG_TARGET_DEPENDS)
 
 include $(INCLUDE_DIR)/package.mk
 include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
@@ -46,6 +48,8 @@ endef
 define Package/nikki/conffiles
 /etc/config/nikki
 /etc/nikki/mixin.yaml
+/etc/nikki/nftables/reserved_ip.nft
+/etc/nikki/nftables/reserved_ip6.nft
 endef
 
 define Package/nikki/install
