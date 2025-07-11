@@ -1,36 +1,28 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nikki
+PKG_VERSION:=2025.06.25
 PKG_RELEASE:=1
 
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git
-PKG_SOURCE_DATE:=2025-06-25
-PKG_SOURCE_VERSION:=5b975275f527c621520622df747ab8efc2a61ddd
-PKG_MIRROR_HASH:=8e4a30e8667626ca887b03b9597a3d4c1481133562bafd6039a778bb27eba867
+PKG_SOURCE_VERSION:=v1.19.11
+PKG_MIRROR_HASH:=93b70bba67852d2a2eb6549b8d0b3d441aabfe68e9c9c72998f95c82fa27d8ac
 
-PKG_LICENSE:=GPL-3.0+
-PKG_MAINTAINER:=***
+PKG_LICENSE:=GPL3.0+
+PKG_MAINTAINER:=Joseph Mory <morytyann@gmail.com>
 
 PKG_BUILD_DEPENDS:=golang/host
 PKG_BUILD_PARALLEL:=1
 PKG_BUILD_FLAGS:=no-mips16
 
-PKG_BUILD_VERSION:=v1.19.11
 PKG_BUILD_TIME:=$(shell date -u -Iseconds)
-PKG_VERSION:=$(PKG_SOURCE_DATE)-$(PKG_BUILD_VERSION)-Mod
-PKGARCH:=$(ARCH)
 
 GO_PKG:=github.com/metacubex/mihomo
-GO_PKG_LDFLAGS_X:= \
-	$(GO_PKG)/constant.Version=$(PKG_BUILD_VERSION) \
-	$(GO_PKG)/constant.BuildTime=$(PKG_BUILD_TIME)
-# Optional: remove if gvisor causes issues
-# GO_PKG_TAGS:=with_gvisor
-
-GO_PKG_BUILD_PURE_GO:=0
-GO_PKG_LDFLAGS += -s -w
-GO_PKG_TARGET_BUILD_DEPENDS:=$(GO_PKG_TARGET_DEPENDS)
+GO_PKG_LDFLAGS_X:=$(GO_PKG)/constant.Version=$(PKG_SOURCE_VERSION) $(GO_PKG)/constant.BuildTime=$(PKG_BUILD_TIME)
+GO_PKG_TAGS:=with_gvisor
 
 include $(INCLUDE_DIR)/package.mk
 include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
@@ -40,9 +32,12 @@ define Package/nikki
   CATEGORY:=Network
   TITLE:=A rule based proxy in Go.
   URL:=https://wiki.metacubex.one
-  DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq +firewall4 +ip-full \
-           +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun
+  DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq firewall4 +ip-full +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun
   PROVIDES:=nikki mihomo
+endef
+
+define Package/nikki/description
+  A rule based proxy in Go.
 endef
 
 define Package/nikki/conffiles
