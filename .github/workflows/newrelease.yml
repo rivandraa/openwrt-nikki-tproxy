@@ -101,18 +101,20 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
+          TAGNAME="${{ steps.release_meta.outputs.tagname }}"
+          TAG_ESCAPED=$(echo "$TAGNAME" | tr '.-' '__')
+
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            #-F document=@"$FILE" \
             -F "document=@$FILE;filename=$(basename "$FILE")" \
-            -F caption="🎉 *Release Nikki TProxy Mod*
-      
-          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
-          📦 Arch: \`${{ matrix.arch }}\`
-          🌿 Branch: \`${{ matrix.branch }}\`" \
-                -F parse_mode="Markdown"
-      
+            -F caption="🎉 *Release #${TAG_ESCAPED}*
+
+            🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+            🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+            📦 Arch: \`${{ matrix.arch }}\`
+            🌿 Branch: \`${{ matrix.branch }}\`" \
+            -F parse_mode="Markdown"
+
       - name: Upload ZIP to GitHub Release (rivandraa/nikki_tproxy)
         uses: softprops/action-gh-release@v2
         with:
@@ -122,4 +124,3 @@ jobs:
           files: ${{ steps.release_meta.outputs.zipname }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TARGET_REPO_PAT }}
-
