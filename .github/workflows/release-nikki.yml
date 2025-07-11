@@ -18,8 +18,6 @@ jobs:
       matrix:
         arch:
           - aarch64_cortex-a53
-          - aarch64_generic
-          - x86_64
         branch:
           - openwrt-24.10
 
