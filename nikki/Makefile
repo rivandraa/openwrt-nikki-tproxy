@@ -9,7 +9,7 @@ PKG_SOURCE_DATE:=2025-06-25
 PKG_SOURCE_VERSION:=5b975275f527c621520622df747ab8efc2a61ddd
 PKG_MIRROR_HASH:=8e4a30e8667626ca887b03b9597a3d4c1481133562bafd6039a778bb27eba867
 
-PKG_LICENSE:=GPL3.0+
+PKG_LICENSE:=GPL-3.0+
 PKG_MAINTAINER:=***
 
 PKG_BUILD_DEPENDS:=golang/host
@@ -18,14 +18,17 @@ PKG_BUILD_FLAGS:=no-mips16
 
 PKG_BUILD_VERSION:=v1.19.11
 PKG_BUILD_TIME:=$(shell date -u -Iseconds)
-PKG_VERSION:=$(PKG_SOURCE_DATE)~$(PKG_BUILD_VERSION)-Mod
-#PKG_VERSION:=$(PKG_BUILD_VERSION)-Mod
+PKG_VERSION:=$(PKG_SOURCE_DATE)-$(PKG_BUILD_VERSION)-Mod
 
 GO_PKG:=github.com/metacubex/mihomo
 GO_PKG_LDFLAGS_X:= \
 	$(GO_PKG)/constant.Version=$(PKG_BUILD_VERSION) \
 	$(GO_PKG)/constant.BuildTime=$(PKG_BUILD_TIME)
-GO_PKG_TAGS:=with_gvisor
+# Optional: remove if gvisor causes issues
+# GO_PKG_TAGS:=with_gvisor
+
+GO_PKG_BUILD_PURE_GO:=0
+GO_PKG_LDFLAGS += -s -w
 
 include $(INCLUDE_DIR)/package.mk
 include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
@@ -48,16 +51,17 @@ endef
 define Package/nikki/install
 	$(call GoPackage/Package/Install/Bin,$(1))
 
-	$(INSTALL_DIR) $(1)/etc/nikki \
-	               $(1)/etc/nikki/ucode \
-	               $(1)/etc/nikki/scripts \
-	               $(1)/etc/nikki/nftables \
-	               $(1)/etc/nikki/profiles \
-	               $(1)/etc/nikki/subscriptions \
-	               $(1)/etc/nikki/run \
-	               $(1)/etc/nikki/run/providers \
-	               $(1)/etc/nikki/run/providers/rule \
-	               $(1)/etc/nikki/run/providers/proxy
+	$(INSTALL_DIR) \
+		$(1)/etc/nikki \
+		$(1)/etc/nikki/ucode \
+		$(1)/etc/nikki/scripts \
+		$(1)/etc/nikki/nftables \
+		$(1)/etc/nikki/profiles \
+		$(1)/etc/nikki/subscriptions \
+		$(1)/etc/nikki/run \
+		$(1)/etc/nikki/run/providers \
+		$(1)/etc/nikki/run/providers/rule \
+		$(1)/etc/nikki/run/providers/proxy
 
 	$(INSTALL_DATA) $(CURDIR)/files/mixin.yaml $(1)/etc/nikki/mixin.yaml
 
@@ -89,18 +93,16 @@ endef
 
 define Package/nikki/postrm
 #!/bin/sh
-if [ -z $${IPKG_INSTROOT} ]; then
-	uci -q batch <<-EOF > /dev/null
-		del firewall.nikki
-		commit firewall
-	EOF
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	uci -q delete firewall.nikki
+	uci -q commit firewall
 fi
 endef
 
 define Package/nikki/postinst
 #!/bin/sh
-if [ -z $${IPKG_INSTROOT} ]; then
-  ln -sf / /www/tinyfm/rootfs
+if [ -z "$${IPKG_INSTROOT}" ]; then
+  [ -d /www/tinyfm ] && ln -sf / /www/tinyfm/rootfs
 fi
 endef
 
