@@ -1,0 +1,35 @@
+name: test
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    name: ${{ matrix.arch }}-${{ matrix.branch }} release
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - aarch64_cortex-a53
+        branch:
+          - openwrt-24.10
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        uses: openwrt/gh-action-sdk@main
+        env:
+          ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
+          FEEDNAME: nikki
+          PACKAGES: luci-app-nikki
+          INDEX: 1
+          KEY_BUILD: ${{ secrets.KEY_BUILD }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          NO_REFRESH_CHECK: true
