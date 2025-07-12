@@ -38,17 +38,19 @@ jobs:
           set -e
           PKG_DIR="bin/packages/${{ matrix.arch }}/nikki"
 
+          # luci-app-nikki
           PKG_FILE_LUCI=$(find "$PKG_DIR" -name 'luci-app-nikki_*.ipk' | head -n 1)
           if [[ -z "$PKG_FILE_LUCI" ]]; then
-            echo "❌ luci-app-nikki package file not found!"
+            echo "❌ luci-app-nikki package not found!"
             exit 1
           fi
           VERSION_LUCI=$(basename "$PKG_FILE_LUCI" | sed -E 's/^luci-app-nikki_([^_]+)_.*\.ipk/\1/')
           echo "version_luci=$VERSION_LUCI" >> $GITHUB_OUTPUT
 
+          # nikki
           PKG_FILE_NIKKI=$(find "$PKG_DIR" -name 'nikki_*.ipk' | head -n 1)
           if [[ -z "$PKG_FILE_NIKKI" ]]; then
-            echo "❌ nikki package file not found!"
+            echo "❌ nikki package not found!"
             exit 1
           fi
           VERSION_NIKKI=$(basename "$PKG_FILE_NIKKI" | sed -E 's/^nikki_([^_]+)_.*\.ipk/\1/')
@@ -59,20 +61,24 @@ jobs:
         run: |
           VERSION_LUCI="${{ steps.extract_version.outputs.version_luci }}"
           VERSION_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
+          ARCH="${{ matrix.arch }}"
+          BRANCH="${{ matrix.branch }}"
 
-          REL_NAME="Nikki-TProxy-${VERSION_LUCI}"
-          ZIP_NAME="Nikki-TProxy-${VERSION_LUCI}_Nikki-${VERSION_NIKKI}_${{ matrix.arch }}-${{ matrix.branch }}"
-          TAG_NAME=$(echo "$REL_NAME" | tr ' ~' '--')
+          TAG_NAME="v${VERSION_LUCI}"  # contoh: v1.23.2-Mod-r1
+          SAFE_NIKKI=$(echo "$VERSION_NIKKI" | sed 's/~/_/g')
 
+          REL_NAME="Nikki-TProxy-$(echo "$TAG_NAME" | sed 's/-/_/g')"
+          ZIP_NAME="Nikki-TProxy-${TAG_NAME}_Nikki_${SAFE_NIKKI}_${ARCH}-${BRANCH}"
+
+          echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
-          echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Compress .ipk files to ZIP
         run: |
           mkdir -p output
           cp bin/packages/${{ matrix.arch }}/nikki/*.ipk output/
-          zip -j ${{ steps.release_meta.outputs.zipname }}.zip output/*.ipk
+          zip -j "${{ steps.release_meta.outputs.zipname }}.zip" output/*.ipk
 
       - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -88,39 +94,28 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          # Ambil variabel penting dari step sebelumnya
-          TAGNAME="${{ steps.release_meta.outputs.tagname }}"  # e.g. v1.23.2-Mod-r1
-          VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"  # e.g. 2025-06-25~v1.19.11-Mod-r1
-          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"    # e.g. v1.19.11-Mod-r1
-          ARCH="${{ matrix.arch }}"                                       # e.g. aarch64_generic
-          BRANCH="${{ matrix.branch }}"                                   # e.g. openwrt-24.10
-      
-          # Normalisasi versi nikki (hindari karakter problematik di filename)
-          SAFE_NIKKI=$(echo "$VER_NIKKI" | sed 's/~/_/g')
-          
-          # Format tagname untuk caption (ubah - jadi _)
-          TAG_FORMATTED=$(echo "$TAGNAME" | sed 's/-/_/g')
-      
-          # Buat nama file final
-          FINAL_ZIP="Nikki-TProxy-${TAGNAME}_Nikki_${SAFE_NIKKI}_${ARCH}-${BRANCH}.zip"
-      
-          # Salin file hasil build ke nama final
-          cp "${{ steps.release_meta.outputs.zipname }}.zip" "$FINAL_ZIP"
-      
-          # Siapkan caption untuk Telegram
+          TAG_NAME="${{ steps.release_meta.outputs.tagname }}"
+          REL_NAME="${{ steps.release_meta.outputs.relname }}"
+          ZIP_NAME="${{ steps.release_meta.outputs.zipname }}"
+          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
+          VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
+          ARCH="${{ matrix.arch }}"
+          BRANCH="${{ matrix.branch }}"
+
+          cp "$ZIP_NAME.zip" safe_upload.zip
+
           CAPTION=$(cat <<EOF
-          🎉 *Release #Nikki-TProxy-${TAG_FORMATTED}*
+          🎉 *Release* #${REL_NAME}
           
           🆎 luci-app-nikki: \`${VER_LUCI}\`
           🧩 nikki: \`${VER_NIKKI}\`
           📦 Arch: \`${ARCH}\`
           🌿 Branch: \`${BRANCH}\`
           EOF
-              )
-  
-          # Upload ke Telegram
+                    )
+
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
-          -F chat_id="${TELEGRAM_CHAT_ID}" \
-          -F "document=@$FINAL_ZIP;filename=$FINAL_ZIP" \
-          -F caption="$CAPTION" \
-          -F parse_mode="Markdown"
+            -F chat_id="${TELEGRAM_CHAT_ID}" \
+            -F "document=@safe_upload.zip;filename=${ZIP_NAME}.zip" \
+            -F caption="$CAPTION" \
+            -F parse_mode="Markdown"
