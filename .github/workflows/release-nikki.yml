@@ -88,14 +88,39 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          FILE="${{ steps.release_meta.outputs.zipname }}.zip"
+          # Ambil variabel penting dari step sebelumnya
+          TAGNAME="${{ steps.release_meta.outputs.tagname }}"  # e.g. v1.23.2-Mod-r1
+          VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"  # e.g. 2025-06-25~v1.19.11-Mod-r1
+          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"    # e.g. v1.19.11-Mod-r1
+          ARCH="${{ matrix.arch }}"                                       # e.g. aarch64_generic
+          BRANCH="${{ matrix.branch }}"                                   # e.g. openwrt-24.10
+      
+          # Normalisasi versi nikki (hindari karakter problematik di filename)
+          SAFE_NIKKI=$(echo "$VER_NIKKI" | sed 's/~/_/g')
+          
+          # Format tagname untuk caption (ubah - jadi _)
+          TAG_FORMATTED=$(echo "$TAGNAME" | sed 's/-/_/g')
+      
+          # Buat nama file final
+          FINAL_ZIP="Nikki-TProxy-${TAGNAME}_Nikki_${SAFE_NIKKI}_${ARCH}-${BRANCH}.zip"
+      
+          # Salin file hasil build ke nama final
+          cp "${{ steps.release_meta.outputs.zipname }}.zip" "$FINAL_ZIP"
+      
+          # Siapkan caption untuk Telegram
+          CAPTION=$(cat <<EOF
+          🎉 *Release #Nikki-TProxy-${TAG_FORMATTED}*
+          
+          🆎 luci-app-nikki: \`${VER_LUCI}\`
+          🧩 nikki: \`${VER_NIKKI}\`
+          📦 Arch: \`${ARCH}\`
+          🌿 Branch: \`${BRANCH}\`
+          EOF
+              )
+  
+          # Upload ke Telegram
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
-            -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F document=@"$FILE;filename=$(basename "$FILE")" \
-            -F caption="🎉 *Release Nikki TProxy Mod*
-
-            🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-            🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
-            📦 Arch: \`${{ matrix.arch }}\`
-            🌿 Branch: \`${{ matrix.branch }}\`" \
-            -F parse_mode="Markdown"
+          -F chat_id="${TELEGRAM_CHAT_ID}" \
+          -F "document=@$FINAL_ZIP;filename=$FINAL_ZIP" \
+          -F caption="$CAPTION" \
+          -F parse_mode="Markdown"
