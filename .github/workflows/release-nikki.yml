@@ -96,35 +96,29 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           TAG_NAME="${{ steps.release_meta.outputs.tagname }}"
-          REL_NAME="${{ steps.release_meta.outputs.relname }}"
           ZIP_NAME="${{ steps.release_meta.outputs.zipname }}"
           VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
           VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
       
-          # Escape for MarkdownV2
-          ESCAPED_TAG=$(echo "$TAG_NAME" | sed 's/v//' | sed 's/[-.]/_/g')
-          HASHTAG="Nikki_TProxy_${ESCAPED_TAG}"
-          ESCAPED_HASHTAG=$(echo "$HASHTAG" | sed 's/_/\\_/g')
+          cp "$ZIP_NAME.zip" safe_upload.zip
       
-          ESCAPED_VER_LUCI=$(echo "$VER_LUCI" | sed 's/[-.]/\\_/g')
-          ESCAPED_VER_NIKKI=$(echo "$VER_NIKKI" | sed 's/[-.~]/\\_/g')
-          ESCAPED_ARCH=$(echo "$ARCH" | sed 's/-/\\-/g')
-          ESCAPED_BRANCH=$(echo "$BRANCH" | sed 's/-/\\-/g')
+          # Ubah TAG_NAME jadi format hashtag-style (dengan underscore)
+          RELEASE_ID=$(echo "$TAG_NAME" | sed 's/[.-]/_/g')
       
           CAPTION=$(cat <<EOF
-          🎉 Release \\#${ESCAPED_HASHTAG}
-          
-          🆎 luci\\-app\\-nikki: ${ESCAPED_VER_LUCI}
-          🧩 nikki: ${ESCAPED_VER_NIKKI}
-          📦 Arch: ${ESCAPED_ARCH}
-          🌿 Branch: ${ESCAPED_BRANCH}
+          🎉 Release #${RELEASE_ID}
+  
+          🆎 luci-app-nikki: ${VER_LUCI}
+          🧩 nikki: ${VER_NIKKI}
+          📦 Arch: ${ARCH}
+          🌿 Branch: ${BRANCH}
           EOF
               )
-    
+  
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@${ZIP_NAME}.zip;filename=${ZIP_NAME}.zip"
+            -F "document=@safe_upload.zip;filename=${ZIP_NAME}.zip" \
             -F caption="$CAPTION" \
-            -F parse_mode="MarkdownV2"
+            -F parse_mode="Markdown"
