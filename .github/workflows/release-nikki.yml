@@ -66,10 +66,10 @@ jobs:
           # Bersihkan versi nikki (hilangkan tanggal, ubah ~ jadi -)
           PURE_VER_NIKKI=$(echo "$VERSION_NIKKI" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//' | sed 's/~/-/g')
       
-          TAG_NAME="${VERSION_LUCI}"                             # ex: v1.23.2
-          NIKKI_VER_CLEANED="${PURE_VER_NIKKI}"                  # ex: v1.19.11-Mod-r1
-          REL_NAME="Nikki-TProxy-${TAG_NAME}"
-          ZIP_NAME="Nikki-TProxy-${TAG_NAME}_Nikki_${NIKKI_VER_CLEANED}_${ARCH}-${BRANCH}"
+          TAG_NAME="Nikki-TProxy-${VERSION_LUCI}"                             # ex: Nikki-TProxy-v1.23.2
+          NIKKI_VER_CLEANED="${PURE_VER_NIKKI}"                              # ex: v1.19.11-Mod-r1
+          REL_NAME="$TAG_NAME"
+          ZIP_NAME="Nikki-TProxy-${VERSION_LUCI}_Nikki_${NIKKI_VER_CLEANED}_${ARCH}-${BRANCH}"
       
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
@@ -96,13 +96,13 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
-          # Ganti semua '-' dan '.' dengan '_'
+          # Ubah tag menjadi format hashtag-friendly (ganti semua - dan . dengan _)
           TAG="$(echo '${{ steps.release_meta.outputs.tagname }}' | sed 's/[-.]/_/g')"
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE;filename=$(basename "$FILE")" \
             -F caption="🎉 *Release* #${TAG}
-            
+
           🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
           🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
           📦 Arch: \`${{ matrix.arch }}\`
