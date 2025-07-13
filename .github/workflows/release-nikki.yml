@@ -95,30 +95,16 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          TAG_NAME="${{ steps.release_meta.outputs.tagname }}"
-          ZIP_NAME="${{ steps.release_meta.outputs.zipname }}"
-          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
-          VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
-          ARCH="${{ matrix.arch }}"
-          BRANCH="${{ matrix.branch }}"
-      
-          cp "$ZIP_NAME.zip" safe_upload.zip
-      
-          # Ubah TAG_NAME jadi format hashtag-style (dengan underscore)
-          RELEASE_ID=$(echo "$TAG_NAME" | sed 's/[.-]/_/g')
-      
-          CAPTION=$(cat <<EOF
-          🎉 Release #${RELEASE_ID}
-  
-          🆎 luci-app-nikki: ${VER_LUCI}
-          🧩 nikki: ${VER_NIKKI}
-          📦 Arch: ${ARCH}
-          🌿 Branch: ${BRANCH}
-          EOF
-              )
-  
+          FILE="${{ steps.release_meta.outputs.zipname }}.zip"
+          # Ganti semua '-' dan '.' dengan '_'
+          TAG="$(echo '${{ steps.release_meta.outputs.tagname }}' | sed 's/[-.]/_/g')"
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@safe_upload.zip;filename=${ZIP_NAME}.zip" \
-            -F caption="$CAPTION" \
+            -F document=@"$FILE;filename=$(basename "$FILE")" \
+            -F caption="🎉 *Release* #${TAG}
+            
+          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+          📦 Arch: \`${{ matrix.arch }}\`
+          🌿 Branch: \`${{ matrix.branch }}\`" \
             -F parse_mode="Markdown"
