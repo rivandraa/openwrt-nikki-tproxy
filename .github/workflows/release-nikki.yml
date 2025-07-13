@@ -39,40 +39,36 @@ jobs:
 
           # luci-app-nikki
           PKG_FILE_LUCI=$(find "$PKG_DIR" -name 'luci-app-nikki_*.ipk' | head -n 1)
-          if [[ -z "$PKG_FILE_LUCI" ]]; then
-            echo "❌ luci-app-nikki package not found!"
-            exit 1
-          fi
+          [ -z "$PKG_FILE_LUCI" ] && echo "❌ luci-app-nikki not found!" && exit 1
           VERSION_LUCI=$(basename "$PKG_FILE_LUCI" | sed -E 's/^luci-app-nikki_([^_]+)_.*\.ipk/\1/')
-          echo "version_luci=$VERSION_LUCI" >> $GITHUB_OUTPUT
 
           # nikki
           PKG_FILE_NIKKI=$(find "$PKG_DIR" -name 'nikki_*.ipk' | head -n 1)
-          if [[ -z "$PKG_FILE_NIKKI" ]]; then
-            echo "❌ nikki package not found!"
-            exit 1
-          fi
+          [ -z "$PKG_FILE_NIKKI" ] && echo "❌ nikki not found!" && exit 1
           VERSION_NIKKI=$(basename "$PKG_FILE_NIKKI" | sed -E 's/^nikki_([^_]+)_.*\.ipk/\1/')
+
+          echo "version_luci=$VERSION_LUCI" >> $GITHUB_OUTPUT
           echo "version_nikki=$VERSION_NIKKI" >> $GITHUB_OUTPUT
 
       - name: Create release metadata
         id: release_meta
         run: |
-          VERSION_LUCI="${{ steps.extract_version.outputs.version_luci }}"
-          VERSION_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
+          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
+          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
-          
-          # Bersihkan versi nikki (hilangkan tanggal, ubah ~ jadi -)
-          PURE_VER_NIKKI=$(echo "$VERSION_NIKKI" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//' | sed 's/~/-/g')
-          
-          TAG_NAME="Nikki-TProxy-${VERSION_LUCI}"  # ex: Nikki-TProxy-v1.23.2
-          REL_NAME="$TAG_NAME"
-          ZIP_NAME="${TAG_NAME}_Nikki_${PURE_VER_NIKKI}_${ARCH}-${BRANCH}"
-          
+
+          # Bersihkan versi nikki (2025-06-25~v1.19.11-Mod-r1 -> v1.19.11-Mod-r1)
+          VER_NIKKI=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
+
+          # Final tag & ZIP name
+          TAG_NAME="Nikki-TProxy-${VER_LUCI}"
+          ZIP_NAME="${TAG_NAME}_Nikki_${VER_NIKKI}_${ARCH}-${BRANCH}"
+          REL_NAME="${TAG_NAME}"
+
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
+          echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
 
       - name: Compress .ipk files to ZIP
         run: |
@@ -95,12 +91,15 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
-          # Ubah tag menjadi format hashtag-friendly (ganti semua - dan . dengan _)
-          TAG="$(echo '${{ steps.release_meta.outputs.tagname }}' | sed -E 's/-/_/g; s/\./_/g; s/(v[0-9]+)_([0-9]+)_([0-9]+)/v\1_\2_\3/g')"
+
+          # Buat hashtag dengan format: Nikki_TProxy_v_1_23_2_Mod_r1
+          CLEAN_TAG="$(echo "${{ steps.release_meta.outputs.tagname }}" | sed -E 's/Nikki-TProxy-//' | sed 's/\./_/g; s/-/_/g')"
+          HASH_TAG="Nikki_TProxy_${CLEAN_TAG}"
+
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE;filename=$(basename "$FILE")" \
-            -F caption="🎉 *Release* #${TAG}
+            -F caption="🎉 *Release* #${HASH_TAG}
 
           🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
           🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
