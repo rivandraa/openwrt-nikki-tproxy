@@ -65,9 +65,9 @@ jobs:
           BRANCH="${{ matrix.branch }}"
 
           TAG_NAME="v${VERSION_LUCI}"  # contoh: v1.23.2-Mod-r1
-          SAFE_NIKKI=$(echo "$VERSION_NIKKI" | sed 's/~/_/g')
+          SAFE_NIKKI=$(echo "$VERSION_NIKKI" | sed 's/~/-/g')
 
-          REL_NAME="Nikki-TProxy-$(echo "$TAG_NAME" | sed 's/-/_/g')"
+          REL_NAME="Nikki-TProxy-${TAG_NAME}"
           ZIP_NAME="Nikki-TProxy-${TAG_NAME}_Nikki_${SAFE_NIKKI}_${ARCH}-${BRANCH}"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -101,21 +101,22 @@ jobs:
           VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
-
-          cp "$ZIP_NAME.zip" safe_upload.zip
-
+      
+          # Buat hashtag dari TAG_NAME (v1.23.2-Mod-r1 → Nikki_TProxy_v1_23_2_Mod_r1)
+          HASHTAG=$(echo "$TAG_NAME" | sed 's/[.-]/_/g' | sed 's/^/Nikki_TProxy_/')
+      
           CAPTION=$(cat <<EOF
-          🎉 *Release* #${REL_NAME}
+          🎉 Release #${HASHTAG}
           
-          🆎 luci-app-nikki: \`${VER_LUCI}\`
-          🧩 nikki: \`${VER_NIKKI}\`
-          📦 Arch: \`${ARCH}\`
-          🌿 Branch: \`${BRANCH}\`
+          🆎 luci-app-nikki: ${VER_LUCI}
+          🧩 nikki: ${VER_NIKKI}
+          📦 Arch: ${ARCH}
+          🌿 Branch: ${BRANCH}
           EOF
-                    )
-
+              )
+      
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@safe_upload.zip;filename=${ZIP_NAME}.zip" \
+            -F "document=@${ZIP_NAME}.zip;filename=${ZIP_NAME}.zip" \
             -F caption="$CAPTION" \
             -F parse_mode="Markdown"
