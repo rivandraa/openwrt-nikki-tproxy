@@ -53,22 +53,26 @@ jobs:
       - name: Create release metadata
         id: release_meta
         run: |
-          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
-          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"
+          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"    # ex: v1.23.2-Mod
+          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"  # ex: 2025-06-25~v1.19.11-Mod-r1
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
 
-          # Bersihkan versi nikki (2025-06-25~v1.19.11-Mod-r1 -> v1.19.11-Mod-r1)
+          # Ambil versi angka luci → v1.23.2 → v_1_23_2
+          VER_LUCI_CLEAN=$(echo "$VER_LUCI_RAW" | sed -E 's/^v//; s/\./_/g' | sed 's/-.*//')
+          VER_LUCI_TAG="Nikki_TProxy_${VER_LUCI_CLEAN}"
+
+          # Ambil versi nikki → v1.19.11-Mod-r1
           VER_NIKKI=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
 
-          # Final tag & ZIP name
-          TAG_NAME="Nikki-TProxy-${VER_LUCI}"
-          ZIP_NAME="${TAG_NAME}_Nikki_${VER_NIKKI}_${ARCH}-${BRANCH}"
-          REL_NAME="${TAG_NAME}"
+          ZIP_NAME="${VER_LUCI_TAG}_Nikki_${VER_NIKKI}_${ARCH}_${BRANCH}"
+          TAG_NAME="Nikki-TProxy-v$(echo "$VER_LUCI_CLEAN" | sed 's/_/./g')"  # Nikki-TProxy-v1.23.2
+          REL_NAME="$TAG_NAME"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
           echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
+          echo "hashtag=${VER_LUCI_TAG}" >> $GITHUB_OUTPUT
 
       - name: Compress .ipk files to ZIP
         run: |
@@ -91,18 +95,15 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
-
-          # Buat hashtag dengan format: Nikki_TProxy_v_1_23_2_Mod_r1
-          CLEAN_TAG="$(echo "${{ steps.release_meta.outputs.tagname }}" | sed -E 's/Nikki-TProxy-//' | sed 's/\./_/g; s/-/_/g')"
-          HASH_TAG="Nikki_TProxy_${CLEAN_TAG}"
+          HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
 
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE;filename=$(basename "$FILE")" \
             -F caption="🎉 *Release* #${HASH_TAG}
 
-          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
-          📦 Arch: \`${{ matrix.arch }}\`
-          🌿 Branch: \`${{ matrix.branch }}\`" \
+            🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+            🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+            📦 Arch: \`${{ matrix.arch }}\`
+            🌿 Branch: \`${{ matrix.branch }}\`" \
             -F parse_mode="Markdown"
