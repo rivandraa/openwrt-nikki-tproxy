@@ -104,10 +104,17 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
-            -F caption="🎉 *Release* #${HASH_TAG}
-
+            caption_text=$(cat <<EOF
+            🎉 *Release* #${HASH_TAG}
             🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
             🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
             📦 Arch: \`${{ matrix.arch }}\`
-            🌿 Branch: \`${{ matrix.branch }}\`" \
-            -F parse_mode="Markdown"
+            🌿 Branch: \`${{ matrix.branch }}\`
+            EOF
+            )
+            
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+              -F chat_id="${TELEGRAM_CHAT_ID}" \
+              -F document=@"$FILE" \
+              -F caption="$caption_text" \
+              -F parse_mode="Markdown"
