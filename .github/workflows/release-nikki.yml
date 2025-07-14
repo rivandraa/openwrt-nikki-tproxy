@@ -69,7 +69,7 @@ jobs:
           TAG_NAME="Nikki-TProxy-v$VER_LUCI_FULL"
 
           # zip: Nikki-TProxy-v1.23.2_Nikki_v1.19.11-Mod-r1_arch-branch
-          ZIP_NAME="Nikki-TProxy-v$VER_LUCI_BASE_Nikki_${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
+          ZIP_NAME="Nikki-TProxy-$VER_LUCI_BASE_Nikki_${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
 
           # hashtag: Nikki_TProxy_v_1_23_2_Mod_r1
           HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\\./_/g; s/-/_/g')"
