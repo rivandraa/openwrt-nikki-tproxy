@@ -102,12 +102,6 @@ jobs:
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
 
-          CAPTION="🎉 *Release* #${HASH_TAG}
-          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
-          📦 Arch: \`${{ matrix.arch }}\`
-          🌿 Branch: \`${{ matrix.branch }}\`"
-
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
 
@@ -115,4 +109,10 @@ jobs:
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
             -F caption="$CAPTION" \
+
+          CAPTION="🎉 *Release* #${HASH_TAG}            
+          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
+          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+          📦 Arch: \`${{ matrix.arch }}\`
+          🌿 Branch: \`${{ matrix.branch }}\`" \
             -F parse_mode="Markdown"
