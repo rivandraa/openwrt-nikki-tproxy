@@ -97,9 +97,12 @@ jobs:
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
 
-          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
+          echo "📢 Mengirim file: $FILE"
+          echo "🔖 Hashtag: #$HASH_TAG"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F document=@"$FILE;filename=$(basename "$FILE")" \
+            -F document=@"$FILE" \
             -F caption="🎉 *Release* #${HASH_TAG}
 
             🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
