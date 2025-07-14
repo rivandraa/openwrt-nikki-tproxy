@@ -53,26 +53,28 @@ jobs:
       - name: Create release metadata
         id: release_meta
         run: |
-          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"    # ex: v1.23.2-Mod
+          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"  # ex: v1.23.2-Mod-r1
           VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"  # ex: 2025-06-25~v1.19.11-Mod-r1
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
 
-          # Ambil versi angka luci → v1.23.2 → v_1_23_2
-          VER_LUCI_CLEAN=$(echo "$VER_LUCI_RAW" | sed -E 's/^v//; s/\./_/g' | sed 's/-.*//')
-          VER_LUCI_TAG="Nikki_TProxy_${VER_LUCI_CLEAN}"
+          # Bersihkan prefix tanggal & ambil bagian versi nikki
+          VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
 
-          # Ambil versi nikki → v1.19.11-Mod-r1
-          VER_NIKKI=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
+          # Ambil versi luci (v1.23.2-Mod-r1) → tag (Nikki-TProxy-v1.23.2), hashtag (Nikki_TProxy_v_1_23_2_Mod_r1)
+          VER_LUCI_VERSION=$(echo "$VER_LUCI_RAW" | cut -d'-' -f1 | sed 's/^v//')
+          VER_LUCI_MOD=$(echo "$VER_LUCI_RAW" | cut -d'-' -f2-)
 
-          ZIP_NAME="${VER_LUCI_TAG}_Nikki_${VER_NIKKI}_${ARCH}_${BRANCH}"
-          TAG_NAME="Nikki-TProxy-v$(echo "$VER_LUCI_CLEAN" | sed 's/_/./g')"  # Nikki-TProxy-v1.23.2
+          TAG_NAME="Nikki-TProxy-v$VER_LUCI_VERSION"
+          ZIP_NAME="${TAG_NAME}_Nikki_${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
           REL_NAME="$TAG_NAME"
+
+          HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_VERSION" | sed 's/\./_/g')_$(echo "$VER_LUCI_MOD" | sed 's/-/_/g')"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
           echo "relname=$REL_NAME" >> $GITHUB_OUTPUT
-          echo "hashtag=${VER_LUCI_TAG}" >> $GITHUB_OUTPUT
+          echo "hashtag=$HASH_TAG" >> $GITHUB_OUTPUT
 
       - name: Compress .ipk files to ZIP
         run: |
@@ -93,12 +95,11 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FILE: ${{ steps.release_meta.outputs.zipname }}.zip
+          HASH_TAG: ${{ steps.release_meta.outputs.hashtag }}
         run: |
-          FILE="${{ steps.release_meta.outputs.zipname }}.zip"
-          HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
-
-          echo "📢 Mengirim file: $FILE"
-          echo "🔖 Hashtag: #$HASH_TAG"
+          echo "📦 FILE: $FILE"
+          echo "🏷️ HASHTAG: $HASH_TAG"
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
