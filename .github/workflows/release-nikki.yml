@@ -58,26 +58,31 @@ jobs:
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
 
-          # Bersihkan tanggal
+          # Bersihkan tanggal dari versi nikki
           VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
 
-          # luci full: 1.23.2-Mod-r1, base: 1.23.2
+          # Hilangkan 'v' di awal untuk diproses
           VER_LUCI_FULL=$(echo "$VER_LUCI_RAW" | sed 's/^v//')
-          VER_LUCI_BASE=$(echo "$VER_LUCI_FULL" | sed 's/-.*//')
 
           # tag: Nikki-TProxy-v1.23.2-Mod-r1
           TAG_NAME="Nikki-TProxy-v$VER_LUCI_FULL"
 
-          # zip: Nikki-TProxy-v1.23.2_Nikki_v1.19.11-Mod-r1_arch-branch
-          ZIP_NAME="Nikki-TProxy-$VER_LUCI_BASE_Nikki_${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
+          # zip: Nikki-TProxy-v1.23.2_v1.19.11-Mod-r1_aarch64_generic-openwrt-24.10
+          ZIP_NAME="Nikki-TProxy-v$VER_LUCI_FULL_v${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
 
           # hashtag: Nikki_TProxy_v_1_23_2_Mod_r1
-          HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\\./_/g; s/-/_/g')"
+          HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\./_/g; s/-/_/g')"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
           echo "relname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "hashtag=$HASH_TAG" >> $GITHUB_OUTPUT
+
+          echo "✅ Generated:"
+          echo "🔖 TAG_NAME = $TAG_NAME"
+          echo "📦 ZIP_NAME = $ZIP_NAME.zip"
+          echo "🏷️ HASH_TAG = #$HASH_TAG"
+
 
       - name: Compress .ipk files to ZIP
         run: |
@@ -105,14 +110,14 @@ jobs:
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
 
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
-            -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F document=@"$FILE" \
-            -F caption="$CAPTION" \
-
           CAPTION="🎉 *Release* #${HASH_TAG}            
           🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
           🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
           📦 Arch: \`${{ matrix.arch }}\`
           🌿 Branch: \`${{ matrix.branch }}\`" \
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="${TELEGRAM_CHAT_ID}" \
+            -F document=@"$FILE" \
+            -F caption="$CAPTION" \
             -F parse_mode="Markdown"
