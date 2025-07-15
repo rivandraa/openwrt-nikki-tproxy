@@ -53,24 +53,33 @@ jobs:
       - name: Create release metadata
         id: release_meta
         run: |
-          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # v1.23.2-Mod-r1
-          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # 2025-06-25~v1.19.11-Mod-r1
+          set -e
+
+          # Ambil input versi dari step sebelumnya
+          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # contoh: v1.23.2-Mod-r1
+          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # contoh: 2025-06-25~v1.19.11-Mod-r1
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
 
-          # Bersihkan tanggal dari versi nikki
+          echo "🧪 Input:"
+          echo "VER_LUCI_RAW = $VER_LUCI_RAW"
+          echo "VER_NIKKI_RAW = $VER_NIKKI_RAW"
+
+          # Bersihkan tanggal dari nikki version
           VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
+          echo "VER_NIKKI_CLEAN = $VER_NIKKI_CLEAN"
 
           # Hilangkan 'v' di awal untuk diproses
           VER_LUCI_FULL=$(echo "$VER_LUCI_RAW" | sed 's/^v//')
+          echo "VER_LUCI_FULL = $VER_LUCI_FULL"
 
-          # tag: Nikki-TProxy-v1.23.2-Mod-r1
+          # Buat nama release/tag
           TAG_NAME="Nikki-TProxy-v$VER_LUCI_FULL"
 
-          # zip: Nikki-TProxy-v1.23.2_v1.19.11-Mod-r1_aarch64_generic-openwrt-24.10
+          # Buat nama ZIP seperti yang diinginkan
           ZIP_NAME="Nikki-TProxy-v$VER_LUCI_FULL_v${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
 
-          # hashtag: Nikki_TProxy_v_1_23_2_Mod_r1
+          # Buat hashtag (safe untuk Telegram Markdown)
           HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\./_/g; s/-/_/g')"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -78,11 +87,11 @@ jobs:
           echo "relname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "hashtag=$HASH_TAG" >> $GITHUB_OUTPUT
 
+          echo ""
           echo "✅ Generated:"
           echo "🔖 TAG_NAME = $TAG_NAME"
           echo "📦 ZIP_NAME = $ZIP_NAME.zip"
           echo "🏷️ HASH_TAG = #$HASH_TAG"
-
 
       - name: Compress .ipk files to ZIP
         run: |
@@ -110,14 +119,18 @@ jobs:
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
 
-          CAPTION="🎉 *Release* #${HASH_TAG}            
+          CAPTION=$(cat <<EOF
+          🎉 *Release* #${HASH_TAG}
           🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
           🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
           📦 Arch: \`${{ matrix.arch }}\`
-          🌿 Branch: \`${{ matrix.branch }}\`" \
+          🌿 Branch: \`${{ matrix.branch }}\`
+          EOF
+          )
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
             -F caption="$CAPTION" \
             -F parse_mode="Markdown"
+
