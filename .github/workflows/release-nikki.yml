@@ -111,19 +111,27 @@ jobs:
         run: |
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
-
+      
+          # Escape untuk Telegram Markdown (hanya karakter penting)
+          esc() {
+            echo "$1" | sed -E 's/([_*\[\]()~`>#\+\-=|{}.!-])/\\\1/g'
+          }
+      
+          VER_LUCI_ESCAPED=$(esc "${{ steps.extract_version.outputs.version_luci }}")
+          VER_NIKKI_ESCAPED=$(esc "${{ steps.extract_version.outputs.version_nikki }}")
+      
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
-
+      
           CAPTION=$(cat <<EOF
           🎉 *Release* #${HASH_TAG}
-          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
+          🆎 luci-app-nikki: \`${VER_LUCI_ESCAPED}\`
+          🧩 nikki: \`${VER_NIKKI_ESCAPED}\`
           📦 Arch: \`${{ matrix.arch }}\`
           🌿 Branch: \`${{ matrix.branch }}\`
           EOF
           )
-
+      
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
