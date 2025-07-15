@@ -76,7 +76,7 @@ jobs:
           HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\./_/g; s/-/_/g')"
       
           # ZIP_NAME akhir sesuai permintaan
-          ZIP_NAME="Nikki-TProxy-v$VER_LUCI_FULL_Nikki-$VER_NIKKI_CLEAN_${ARCH}-${BRANCH}"
+          ZIP_NAME="Nikki-TProxy-${VER_LUCI_FULL}-Nikki-${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
       
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
