@@ -55,6 +55,7 @@ jobs:
         run: |
           set -e
 
+          # Ambil dari extract_version
           VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # v1.23.2-Mod-r1
           VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # 2025-06-25~v1.19.11-Mod-r1
           ARCH="${{ matrix.arch }}"
@@ -64,21 +65,19 @@ jobs:
           echo "VER_LUCI_RAW = $VER_LUCI_RAW"
           echo "VER_NIKKI_RAW = $VER_NIKKI_RAW"
 
-          # Bersihkan tanggal dari versi nikki, tetap pakai v
-          VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
+          # Hilangkan prefix v untuk olah string, tapi simpan aslinya juga
+          VER_LUCI_FULL=$(echo "$VER_LUCI_RAW" | sed 's/^v//')                 # 1.23.2-Mod-r1
+          VER_LUCI_BASE=$(echo "$VER_LUCI_FULL" | sed 's/-.*//')              # 1.23.2
 
-          # Hilangkan 'v' di awal untuk manipulasi base
-          VER_LUCI_FULL=$(echo "$VER_LUCI_RAW" | sed 's/^v//')
-          VER_LUCI_BASE=$(echo "$VER_LUCI_FULL" | sed 's/-.*//')  # ambil hanya 1.23.2
+          # Ambil versi nikki tanpa tanggal, tetapi tetap menyimpan huruf v
+          VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')  # v1.19.11-Mod-r1
 
-          # tag: Nikki-TProxy-v1.23.2-Mod-r1
+          # Buat nama tag dan hashtag
           TAG_NAME="Nikki-TProxy-v$VER_LUCI_FULL"
-
-          # zip: Nikki-TProxy-v1.23.2_Nikki-v1.19.11-Mod-r1_aarch64_generic-openwrt-24.10
-          ZIP_NAME="Nikki-TProxy-$VER_LUCI_BASE_Nikki-$VER_NIKKI_CLEAN_${ARCH}-${BRANCH}"
-
-          # hashtag: Nikki_TProxy_v_1_23_2_Mod_r1
           HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\./_/g; s/-/_/g')"
+
+          # Buat nama file zip akhir
+          ZIP_NAME="Nikki-TProxy-v$VER_LUCI_BASE_Nikki-$VER_NIKKI_CLEAN_${ARCH}-${BRANCH}"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
