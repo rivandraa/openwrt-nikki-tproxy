@@ -55,9 +55,8 @@ jobs:
         run: |
           set -e
 
-          # Ambil input versi dari step sebelumnya
-          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # contoh: v1.23.2-Mod-r1
-          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # contoh: 2025-06-25~v1.19.11-Mod-r1
+          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # v1.23.2-Mod-r1
+          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # 2025-06-25~v1.19.11-Mod-r1
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
 
@@ -65,21 +64,20 @@ jobs:
           echo "VER_LUCI_RAW = $VER_LUCI_RAW"
           echo "VER_NIKKI_RAW = $VER_NIKKI_RAW"
 
-          # Bersihkan tanggal dari nikki version
+          # Bersihkan tanggal dari versi nikki, tetap pakai v
           VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
-          echo "VER_NIKKI_CLEAN = $VER_NIKKI_CLEAN"
 
-          # Hilangkan 'v' di awal untuk diproses
+          # Hilangkan 'v' di awal untuk manipulasi base
           VER_LUCI_FULL=$(echo "$VER_LUCI_RAW" | sed 's/^v//')
-          echo "VER_LUCI_FULL = $VER_LUCI_FULL"
+          VER_LUCI_BASE=$(echo "$VER_LUCI_FULL" | sed 's/-.*//')  # ambil hanya 1.23.2
 
-          # Buat nama release/tag
+          # tag: Nikki-TProxy-v1.23.2-Mod-r1
           TAG_NAME="Nikki-TProxy-v$VER_LUCI_FULL"
 
-          # Buat nama ZIP seperti yang diinginkan
-          ZIP_NAME="Nikki-TProxy-v$VER_LUCI_FULL_v${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
+          # zip: Nikki-TProxy-v1.23.2_Nikki-v1.19.11-Mod-r1_aarch64_generic-openwrt-24.10
+          ZIP_NAME="Nikki-TProxy-$VER_LUCI_BASE_Nikki-$VER_NIKKI_CLEAN_${ARCH}-${BRANCH}"
 
-          # Buat hashtag (safe untuk Telegram Markdown)
+          # hashtag: Nikki_TProxy_v_1_23_2_Mod_r1
           HASH_TAG="Nikki_TProxy_v_$(echo "$VER_LUCI_FULL" | sed 's/\./_/g; s/-/_/g')"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -133,4 +131,3 @@ jobs:
             -F document=@"$FILE" \
             -F caption="$CAPTION" \
             -F parse_mode="Markdown"
-
