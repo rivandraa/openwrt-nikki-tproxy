@@ -109,24 +109,21 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          set -e
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
-      
+
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
 
-          CAPTION=$(cat <<EOF
-          🎉 *Release* \#${HASH_TAG}
-          
-          🆎 luci\-app\-nikki: \`v1\.23\.2\-Mod\-r1\`
-          🧩 nikki: \`2025\-06\-25~v1\.19\.11\-Mod\-r1\`
-          📦 Arch: \`aarch64\_generic\`
-          🌿 Branch: \`openwrt\-24\.10\`
-          EOF
-          )
-          
+          CAPTION="🎉 *Release* #${HASH_TAG}%0A\
+          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`%0A\
+          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`%0A\
+          📦 Arch: \`${{ matrix.arch }}\`%0A\
+          🌿 Branch: \`${{ matrix.branch }}\`"
+
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@"$FILE" \
+            -F document=@"$FILE" \
             -F caption="$CAPTION" \
-            -F parse_mode="MarkdownV2"
+            -F parse_mode="Markdown"
