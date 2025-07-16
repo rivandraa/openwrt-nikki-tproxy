@@ -112,9 +112,9 @@ jobs:
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
       
-          # Escape untuk Telegram Markdown (hanya karakter penting)
+          # Fungsi escape karakter spesial untuk Telegram Markdown
           esc() {
-            echo "$1" | sed -E 's/([_*\[\]()~`>#\+\-=|{}.!-])/\\\1/g'
+            echo "$1" | sed -E 's/([_*\[\]()~`>#\+\=|{}.!\\-])/\\\1/g'
           }
       
           VER_LUCI_ESCAPED=$(esc "${{ steps.extract_version.outputs.version_luci }}")
@@ -130,7 +130,7 @@ jobs:
           📦 Arch: \`${{ matrix.arch }}\`
           🌿 Branch: \`${{ matrix.branch }}\`
           EOF
-          )
+              )
       
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
