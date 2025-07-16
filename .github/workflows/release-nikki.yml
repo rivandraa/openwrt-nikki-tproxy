@@ -112,9 +112,9 @@ jobs:
           FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           HASH_TAG="${{ steps.release_meta.outputs.hashtag }}"
       
-          # Fungsi escape karakter spesial untuk Telegram Markdown
+          # Escape untuk Telegram Markdown (mode: normal)
           esc() {
-            echo "$1" | sed -E 's/([_*\[\]()~`>#\+\=|{}.!\\-])/\\\1/g'
+            printf '%s' "$1" | sed -E 's/([][*_()~`>#+=|{}.!\\^-])/\\\1/g'
           }
       
           VER_LUCI_ESCAPED=$(esc "${{ steps.extract_version.outputs.version_luci }}")
@@ -137,3 +137,6 @@ jobs:
             -F document=@"$FILE" \
             -F caption="$CAPTION" \
             -F parse_mode="Markdown"
+
+          echo "Testing Escape"
+          echo "$FILE" | sed -E 's/([][*_()~`>#+=|{}.!\\^-])/\\\1/g'
