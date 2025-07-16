@@ -115,13 +115,18 @@ jobs:
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
 
-          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument \
+          CAPTION=$(cat <<EOF
+          🎉 *Release* \#${HASH_TAG}
+          
+          🆎 luci\-app\-nikki: \`v1\.23\.2\-Mod\-r1\`
+          🧩 nikki: \`2025\-06\-25~v1\.19\.11\-Mod\-r1\`
+          📦 Arch: \`aarch64\_generic\`
+          🌿 Branch: \`openwrt\-24\.10\`
+          EOF
+          )
+          
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@$FILE;filename=$(basename "$FILE")" \
-            -F caption="🎉 *Release* #${HASH_TAG}
-
-            🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`
-            🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`
-            📦 Arch: \`${{ matrix.arch }}\`
-            🌿 Branch: \`${{ matrix.branch }}\`" \
-            -F parse_mode="Markdown"
+            -F "document=@"$FILE" \
+            -F caption="$CAPTION" \
+            -F parse_mode="MarkdownV2"
