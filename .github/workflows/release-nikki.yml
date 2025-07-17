@@ -146,3 +146,13 @@ jobs:
 
           # Optional: hapus file pendek
           rm -f "$SHORT_NAME"
+
+      - name: Upload ZIP to GitHub Release (rivandraa/nikki_tproxy)
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: rivandraa/nikki_tproxy
+          tag_name: ${{ steps.release_meta.outputs.tagname }}
+          name: "Release ${{ steps.release_meta.outputs.tagname }}"  # Tanpa emoji
+          files: ${{ steps.release_meta.outputs.zipname }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_PAT }}
