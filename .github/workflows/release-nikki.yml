@@ -131,6 +131,7 @@ jobs:
 
           # Caption HTML
           CAPTION="🎉 <b>Release</b> #${{ steps.release_meta.outputs.hashtag }}
+          
           🆎 luci-app-nikki: <code>$VER_LUCI</code>
           🧩 nikki: <code>$VER_NIKKI</code>
           📦 Arch: <code>$ARCH</code>
