@@ -116,14 +116,15 @@ jobs:
           echo "📦 FILE: $FILE"
           echo "🏷️ HASHTAG: #$HASH_TAG"
 
-          CAPTION="🎉 *Release* #${HASH_TAG}%0A\
-          🆎 luci-app-nikki: \`${{ steps.extract_version.outputs.version_luci }}\`%0A\
-          🧩 nikki: \`${{ steps.extract_version.outputs.version_nikki }}\`%0A\
-          📦 Arch: \`${{ matrix.arch }}\`%0A\
-          🌿 Branch: \`${{ matrix.branch }}\`"
+          CAPTION="🎉 <b>Release</b> #${HASH_TAG}%0A\
+          🆎 luci-app-nikki: <code>${{ steps.extract_version.outputs.version_luci }}</code>%0A\
+          🧩 nikki: <code>${{ steps.extract_version.outputs.version_nikki }}</code>%0A\
+          📦 Arch: <code>${{ matrix.arch }}</code>%0A\
+          🌿 Branch: <code>${{ matrix.branch }}</code>"
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F document=@"$FILE" \
             -F caption="$CAPTION" \
-            -F parse_mode="Markdown"
+            -F parse_mode="HTML"
+
