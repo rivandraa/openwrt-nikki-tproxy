@@ -140,7 +140,7 @@ jobs:
             done)
             MSG=$(printf "🛎️ *Sync dari upstream selesai*\n\n*File berubah:*\n%s" "$CHANGED")
           else
-            MSG=$(printf "🛎️ *Sync dari upstream selesai*\n\nTidak ada file yang berubah di folder target.")
+            MSG=$(printf "🛎️ *Sync dari upstream selesai*\n\nTidak ada Update.")
           fi
       
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
