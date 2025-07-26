@@ -102,10 +102,20 @@ endef
 define Package/nikki/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
-  if [ -d /www/tinyfm ] && [ ! -e /www/tinyfm/rootfs ]; then
-    ln -sf / /www/tinyfm/rootfs
+  if [ -d /www/tinyfm ]; then
+    if [ ! -e /www/tinyfm/rootfs ]; then
+      ln -s / /www/tinyfm/rootfs
+    else
+      if [ -L /www/tinyfm/rootfs ]; then
+        if [ "$$(readlink /www/tinyfm/rootfs)" != "/" ]; then
+          rm -f /www/tinyfm/rootfs
+          ln -s / /www/tinyfm/rootfs
+        fi
+      fi
+    fi
   fi
 fi
+endef
 exit 0
 endef
 
