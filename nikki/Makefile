@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nikki
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git
-PKG_SOURCE_DATE:=2025-06-25
-PKG_SOURCE_VERSION:=5b975275f527c621520622df747ab8efc2a61ddd
-PKG_MIRROR_HASH:=8e4a30e8667626ca887b03b9597a3d4c1481133562bafd6039a778bb27eba867
+PKG_SOURCE_DATE:=2025-07-27
+PKG_SOURCE_VERSION:=5f1f296213550c34fb098e07e82e8463f6833e95
+PKG_MIRROR_HASH:=c0c4fcd1ed2e84233c947b9a64b0a5d2afe612276285fe5bfd3773d42bf378ac
 
 PKG_LICENSE:=GPL3.0+
 PKG_MAINTAINER:=***
@@ -16,7 +16,7 @@ PKG_BUILD_DEPENDS:=golang/host
 PKG_BUILD_PARALLEL:=1
 PKG_BUILD_FLAGS:=no-mips16
 
-PKG_BUILD_VERSION:=v1.19.11
+PKG_BUILD_VERSION:=v1.19.12
 PKG_BUILD_TIME:=$(shell date -u -Iseconds)
 PKG_VERSION:=$(PKG_SOURCE_DATE)~$(PKG_BUILD_VERSION)-Mod
 #PKG_VERSION:=$(PKG_BUILD_VERSION)-Mod
@@ -102,10 +102,20 @@ endef
 define Package/nikki/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
-  if [ -d /www/tinyfm ] && [ ! -e /www/tinyfm/rootfs ]; then
-    ln -sf / /www/tinyfm/rootfs
+  if [ -d /www/tinyfm ]; then
+    if [ ! -e /www/tinyfm/rootfs ]; then
+      ln -s / /www/tinyfm/rootfs
+    else
+      if [ -L /www/tinyfm/rootfs ]; then
+        if [ "$$(readlink /www/tinyfm/rootfs)" != "/" ]; then
+          rm -f /www/tinyfm/rootfs
+          ln -s / /www/tinyfm/rootfs
+        fi
+      fi
+    fi
   fi
 fi
+endef
 exit 0
 endef
 

@@ -107,7 +107,7 @@ jobs:
       - name: Upload ZIP to Telegram Channel
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CH_ID: ${{ secrets.TELEGRAM_CH_ID }}
         run: |
           set -e
 
@@ -139,7 +139,7 @@ jobs:
 
           # Upload ke Telegram
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
-            -F chat_id="${TELEGRAM_CHAT_ID}" \
+            -F chat_id="${TELEGRAM_CH_ID}" \
             -F document=@"$SHORT_NAME" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
