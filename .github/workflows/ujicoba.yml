@@ -20,6 +20,10 @@ jobs:
           - openwrt-24.10
 
     steps:
+      - name: Clean stale distfiles
+        run: |
+          rm -f dl/nikki-*.tar.*
+          
       - name: Checkout repository
         uses: actions/checkout@v4
 
