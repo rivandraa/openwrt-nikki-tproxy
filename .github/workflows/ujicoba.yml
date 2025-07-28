@@ -20,36 +20,18 @@ jobs:
           - openwrt-24.10
 
     steps:
-      - name: Checkout repository
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Clean and prepare dl directory
-        run: |
-          mkdir -p dl
-          rm -f dl/nikki-*.tar.*
-
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y unzip curl
-
-      - name: Prepare SDK
+      - name: build
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
           FEEDNAME: nikki
-          PACKAGES: ""
-          NO_REFRESH_CHECK: true
-
-      - name: Fix PKG_MIRROR_HASH (generate fresh hash)
-        run: |
-          make package/feeds/nikki/nikki/download V=s
-        working-directory: builder
-
-      - name: Build package
-        uses: openwrt/gh-action-sdk@main
-        env:
-          ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
-          FEEDNAME: nikki
-          PACKAGES: luci-app-nikki nikki
+          PACKAGES: luci-app-nikki
+          INDEX: 1
+          KEY_BUILD: ${{ secrets.KEY_BUILD }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           NO_REFRESH_CHECK: true
 
       - name: List built packages
