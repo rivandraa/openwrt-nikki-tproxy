@@ -25,6 +25,7 @@ jobs:
 
       - name: Clean stale distfiles
         run: |
+          mkdir -p dl
           find dl/ -type f -name 'nikki-*' -exec rm -f {} +
 
       - name: Build package
