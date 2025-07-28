@@ -20,63 +20,55 @@ jobs:
           - openwrt-24.10
 
     steps:
-      - name: checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: build
+      - name: Build package
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
           FEEDNAME: nikki
           PACKAGES: luci-app-nikki
-          INDEX: 1
-          KEY_BUILD: ${{ secrets.KEY_BUILD }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           NO_REFRESH_CHECK: true
-
-      - name: List built packages
-        run: |
-          echo "📁 Contents of: bin/packages/${{ matrix.arch }}/nikki"
-          ls -al bin/packages/${{ matrix.arch }}/nikki
-
-      - name: Extract package versions
-        id: extract_version
-        run: |
-          set -e
-          PKG_DIR="bin/packages/${{ matrix.arch }}/nikki"
-
-          PKG_FILE_LUCI=$(find "$PKG_DIR" -name 'luci-app-nikki_*.ipk' | head -n 1)
-          [ -z "$PKG_FILE_LUCI" ] && echo "❌ luci-app-nikki not found!" && exit 1
-          VERSION_LUCI=$(basename "$PKG_FILE_LUCI" | sed -E 's/^luci-app-nikki_([^_]+)_.*\.ipk/\1/')
-
-          PKG_FILE_NIKKI=$(find "$PKG_DIR" -name 'nikki_*.ipk' | head -n 1)
-          [ -z "$PKG_FILE_NIKKI" ] && echo "❌ nikki not found!" && exit 1
-          VERSION_NIKKI=$(basename "$PKG_FILE_NIKKI" | sed -E 's/^nikki_([^_]+)_.*\.ipk/\1/')
-
-          echo "version_luci=$VERSION_LUCI" >> $GITHUB_OUTPUT
-          echo "version_nikki=$VERSION_NIKKI" >> $GITHUB_OUTPUT
 
       - name: Create release metadata
         id: release_meta
         run: |
           set -e
-          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"
-          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"
+      
+          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # v1.23.2-Mod-r1
+          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # 2025-06-25~v1.19.11-Mod-r1
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
-
-          VER_LUCI_FULL=$(echo "$VER_LUCI_RAW")
-          VER_LUCI_BASE=$(echo "$VER_LUCI_FULL" | sed 's/-.*//')
-          VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
-
+      
+          echo "🧪 Input:"
+          echo "VER_LUCI_RAW = $VER_LUCI_RAW"
+          echo "VER_NIKKI_RAW = $VER_NIKKI_RAW"
+      
+          VER_LUCI_FULL=$(echo "$VER_LUCI_RAW")                 # v1.23.2-Mod-r1
+          VER_LUCI_BASE=$(echo "$VER_LUCI_FULL" | sed 's/-.*//')              # 1.23.2
+      
+          VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')  # v1.19.11-Mod-r1
+      
+          # Gunakan TAG_NAME tetap seperti sebelumnya
           TAG_NAME="Nikki-TProxy-$VER_LUCI_FULL"
+      
+          # Format hashtag ubah titik dan strip jadi underscore
           HASH_TAG="Nikki_TProxy_$(echo "$VER_LUCI_FULL" | sed 's/\./_/g; s/-/_/g')"
+      
+          # ZIP_NAME akhir sesuai permintaan
           ZIP_NAME="Nikki-TProxy-${VER_LUCI_BASE}-Nikki-${VER_NIKKI_CLEAN}_${ARCH}-${BRANCH}"
-
+      
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
           echo "relname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "hashtag=$HASH_TAG" >> $GITHUB_OUTPUT
+      
+          echo ""
+          echo "✅ Generated:"
+          echo "🔖 TAG_NAME = $TAG_NAME"
+          echo "📦 ZIP_NAME = $ZIP_NAME.zip"
+          echo "🏷️ HASH_TAG = #$HASH_TAG"
 
       - name: Compress .ipk files to ZIP
         run: |
@@ -96,22 +88,29 @@ jobs:
       - name: Upload ZIP to Telegram Channel
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CH_ID: ${{ secrets.TELEGRAM_CH_ID }}
         run: |
           set -e
 
+          # Asli dari hasil build
           ORIGINAL_FILE="${{ steps.release_meta.outputs.zipname }}.zip"
-          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
-          VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
-          ARCH="${{ matrix.arch }}"
+          VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"     # v1.23.2-Mod-r1
+          VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"   # 2025-06-25~v1.19.11-Mod-r1
+          ARCH="${{ matrix.arch }}"                                        # e.g. aarch64_generic
 
-          SHORT_LUCI=$(echo "$VER_LUCI" | sed -E 's/^(v[0-9]+)\.([0-9]+)\.([0-9]+).*/\1_\2_\3/')
-          SHORT_NIKKI=$(echo "$VER_NIKKI" | grep -o 'v[^ ]*' | sed 's/\./_/g')
+          # Buat versi pendek
+          SHORT_LUCI=$(echo "$VER_LUCI" | sed -E 's/^(v[0-9]+)\.([0-9]+)\.([0-9]+).*/\1_\2_\3/') # v1_23_2
+          SHORT_NIKKI=$(echo "$VER_NIKKI" | grep -o 'v[^ ]*' | sed 's/\./_/g') # v1_19_11-Mod-r1
 
           SHORT_NAME="Nikki_TProxy_${SHORT_LUCI}_Nikki_${SHORT_NIKKI}_${ARCH}.zip"
 
+          echo "📦 Asli: $ORIGINAL_FILE"
+          echo "📦 Pendek: $SHORT_NAME"
+
+          # Salin file asli ke nama pendek
           cp "$ORIGINAL_FILE" "$SHORT_NAME"
 
+          # Caption HTML
           CAPTION="🎉 <b>Release</b> #${{ steps.release_meta.outputs.hashtag }}
           
           🆎 luci-app-nikki: <code>$VER_LUCI</code>
@@ -119,10 +118,12 @@ jobs:
           📦 Arch: <code>$ARCH</code>
           🌿 Branch: <code>${{ matrix.branch }}</code>"
 
+          # Upload ke Telegram
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
-            -F chat_id="${TELEGRAM_CHAT_ID}" \
+            -F chat_id="${TELEGRAM_CH_ID}" \
             -F document=@"$SHORT_NAME" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
 
+          # Optional: hapus file pendek
           rm -f "$SHORT_NAME"
