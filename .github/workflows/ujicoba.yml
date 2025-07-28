@@ -1,4 +1,4 @@
-name: release-nikki
+name: release-nikki-ujicoba
 
 on:
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
           PACKAGES: luci-app-nikki nikki
           NO_REFRESH_CHECK: true
 
-      - name: Debug: List built packages
+      - name: List built packages
         run: |
           echo "📁 Contents of: bin/packages/${{ matrix.arch }}/nikki"
           ls -al bin/packages/${{ matrix.arch }}/nikki
