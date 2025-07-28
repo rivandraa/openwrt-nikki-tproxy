@@ -259,7 +259,7 @@ return view.extend({
                 <button type="button" class="cbi-button cbi-button-action" onclick="window.dispatchEvent(new CustomEvent('nikki-reload-clicked'))">RELOAD SERVICE</button>
                 <button type="button" class="cbi-button cbi-button-negative" onclick="window.dispatchEvent(new CustomEvent('nikki-restart-clicked'))">RESTART SERVICE</button>
                 <button type="button" class="cbi-button cbi-button-positive" onclick="window.dispatchEvent(new CustomEvent('nikki-update_dashboard-clicked'))">UPDATE DASHBOARD</button>
-                <button type="button" class="cbi-button" onclick="window.dispatchEvent(new CustomEvent('nikki-open_dashboard-clicked'))">OPEN DASHBOARD</button>
+                <button type="button" class="cbi-button cbi-button-neutral" onclick="window.dispatchEvent(new CustomEvent('nikki-open_dashboard-clicked'))">OPEN DASHBOARD</button>
             </div>
         `;
 
