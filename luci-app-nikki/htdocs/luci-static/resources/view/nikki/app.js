@@ -86,7 +86,6 @@ function updateStatus(element, status) {
 // Fungsi tambah spinner dan disable tombol saat proses async
 function addSpinnerToButton(eventName, asyncAction) {
     window.addEventListener(eventName, () => {
-        // Cari tombol yang memiliki onclick event sesuai eventName
         const button = [...document.querySelectorAll('button')].find(btn =>
             btn.getAttribute('onclick')?.includes(eventName)
         );
@@ -117,6 +116,77 @@ if (!styleEl) {
     document.head.appendChild(styleEl);
 }
 
+// Fungsi helper versi
+function extractVersion(full) {
+    const m = full.match(/v?(\d+\.\d+\.\d+)(-.+)?/);
+    return m ? { main: m[1], suffix: m[2] || "" } : { main: full, suffix: "" };
+}
+function normalizeVersion(vObj) {
+    return {
+        main: vObj.main.replace(/^v/, ''),
+        suffix: vObj.suffix
+    };
+}
+function compareVersions(a, b) {
+    const pa = a.main.split('.').map(Number);
+    const pb = b.main.split('.').map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const na = pa[i] || 0;
+        const nb = pb[i] || 0;
+        if (na > nb) return 1;
+        if (na < nb) return -1;
+    }
+    if (a.suffix !== b.suffix) {
+        const ra = (a.suffix.match(/r(\d+)/) || [0,0])[1];
+        const rb = (b.suffix.match(/r(\d+)/) || [0,0])[1];
+        if (+ra > +rb) return 1;
+        if (+ra < +rb) return -1;
+    }
+    return 0;
+}
+function notifyNewVersion(latestTag) {
+    let container = document.getElementById('nikki-notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'nikki-notification-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        `;
+        document.body.appendChild(container);
+    }
+
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        background-color: #ffcc00;
+        color: #000;
+        padding: 10px 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    `;
+
+    notif.innerHTML = `
+        <span>
+            New version available: 
+            <a href="https://t.me/NikkiTProxy" target="_blank" style="color: blue;">
+                ${latestTag}
+            </a>
+        </span>
+        <span style="cursor: pointer; color: red; font-weight: bold;" onclick="this.parentElement.remove();">❌</span>
+    `;
+
+    container.appendChild(notif);
+    setTimeout(() => notif.remove(), 10000);
+}
+
 return view.extend({
     load: function () {
         return Promise.all([
@@ -136,6 +206,26 @@ return view.extend({
         currentStatus = isRunning ? 'running' : 'stopped';
 
         const m = new form.Map('nikki');
+
+        // === NOTIFIKASI UPDATE APP ===
+        setTimeout(() => {
+            const currentVersionRaw = extractVersion(appVersion || "unknown");
+            const currentVersion = normalizeVersion(currentVersionRaw);
+
+            fetch('https://api.github.com/repos/rivandraa/nikki_tproxy/releases/latest')
+                .then(response => response.json())
+                .then(data => {
+                    const latestVersionRaw = extractVersion(data.tag_name || "");
+                    const latestVersion = normalizeVersion(latestVersionRaw);
+
+                    if (latestVersion.main && compareVersions(latestVersion, currentVersion) > 0) {
+                        notifyNewVersion(data.tag_name);
+                    }
+                })
+                .catch(err => {
+                    console.warn("Gagal memeriksa versi terbaru (non-blocking):", err);
+                });
+        }, 100);
 
         // === STATUS SECTION ===
         let s = m.section(form.TableSection, 'status', _('📊 Status'));
@@ -205,12 +295,10 @@ return view.extend({
             });
 
             addSpinnerToButton('nikki-update_dashboard-clicked', () => {
-                // Jika updateDashboard bukan async, pakai Promise.resolve
                 return Promise.resolve(nikki.updateDashboard());
             });
 
             addSpinnerToButton('nikki-open_dashboard-clicked', () => {
-                // Jika openDashboard bukan async, pakai Promise.resolve
                 return Promise.resolve(nikki.openDashboard());
             });
         }, 100);
