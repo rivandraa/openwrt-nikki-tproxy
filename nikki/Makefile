@@ -115,7 +115,6 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
     fi
   fi
 fi
-endef
 exit 0
 endef
 
