@@ -1,30 +1,27 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nikki
+PKG_VERSION:=2025.07.27
 PKG_RELEASE:=1
 
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git
-PKG_SOURCE_DATE:=2025-07-27
-PKG_SOURCE_VERSION:=5f1f296213550c34fb098e07e82e8463f6833e95
-PKG_MIRROR_HASH:=c0c4fcd1ed2e84233c947b9a64b0a5d2afe612276285fe5bfd3773d42bf378ac
+PKG_SOURCE_VERSION:=v1.19.12
+PKG_MIRROR_HASH:=de065d6eb33b84b660d3ecaaee3359c991307ab42345c70e82c5ce65c1ae329e
 
 PKG_LICENSE:=GPL3.0+
-PKG_MAINTAINER:=***
+PKG_MAINTAINER:=Joseph Mory <morytyann@gmail.com>
 
 PKG_BUILD_DEPENDS:=golang/host
 PKG_BUILD_PARALLEL:=1
 PKG_BUILD_FLAGS:=no-mips16
 
-PKG_BUILD_VERSION:=v1.19.12
 PKG_BUILD_TIME:=$(shell date -u -Iseconds)
-PKG_VERSION:=$(PKG_SOURCE_DATE)~$(PKG_BUILD_VERSION)-Mod
-#PKG_VERSION:=$(PKG_BUILD_VERSION)-Mod
 
 GO_PKG:=github.com/metacubex/mihomo
-GO_PKG_LDFLAGS_X:= \
-	$(GO_PKG)/constant.Version=$(PKG_BUILD_VERSION) \
-	$(GO_PKG)/constant.BuildTime=$(PKG_BUILD_TIME)
+GO_PKG_LDFLAGS_X:=$(GO_PKG)/constant.Version=$(PKG_SOURCE_VERSION) $(GO_PKG)/constant.BuildTime=$(PKG_BUILD_TIME)
 GO_PKG_TAGS:=with_gvisor
 
 include $(INCLUDE_DIR)/package.mk
@@ -35,9 +32,12 @@ define Package/nikki
   CATEGORY:=Network
   TITLE:=A rule based proxy in Go.
   URL:=https://wiki.metacubex.one
-  DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq +firewall4 +ip-full \
-           +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun
+  DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq firewall4 +ip-full +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun
   PROVIDES:=nikki mihomo
+endef
+
+define Package/nikki/description
+  A rule based proxy in Go.
 endef
 
 define Package/nikki/conffiles
@@ -50,16 +50,16 @@ endef
 define Package/nikki/install
 	$(call GoPackage/Package/Install/Bin,$(1))
 
-	$(INSTALL_DIR) $(1)/etc/nikki \
-	               $(1)/etc/nikki/ucode \
-	               $(1)/etc/nikki/scripts \
-	               $(1)/etc/nikki/nftables \
-	               $(1)/etc/nikki/profiles \
-	               $(1)/etc/nikki/subscriptions \
-	               $(1)/etc/nikki/run \
-	               $(1)/etc/nikki/run/providers \
-	               $(1)/etc/nikki/run/providers/rule \
-	               $(1)/etc/nikki/run/providers/proxy
+	$(INSTALL_DIR) $(1)/etc/nikki
+	$(INSTALL_DIR) $(1)/etc/nikki/ucode
+	$(INSTALL_DIR) $(1)/etc/nikki/scripts
+	$(INSTALL_DIR) $(1)/etc/nikki/nftables
+	$(INSTALL_DIR) $(1)/etc/nikki/profiles
+	$(INSTALL_DIR) $(1)/etc/nikki/subscriptions
+	$(INSTALL_DIR) $(1)/etc/nikki/run
+	$(INSTALL_DIR) $(1)/etc/nikki/run/providers
+	$(INSTALL_DIR) $(1)/etc/nikki/run/providers/rule
+	$(INSTALL_DIR) $(1)/etc/nikki/run/providers/proxy
 
 	$(INSTALL_DATA) $(CURDIR)/files/mixin.yaml $(1)/etc/nikki/mixin.yaml
 
@@ -73,6 +73,8 @@ define Package/nikki/install
 
 	$(INSTALL_BIN) $(CURDIR)/files/nftables/reserved_ip.nft $(1)/etc/nikki/nftables/reserved_ip.nft
 	$(INSTALL_BIN) $(CURDIR)/files/nftables/reserved_ip6.nft $(1)/etc/nikki/nftables/reserved_ip6.nft
+	$(INSTALL_BIN) $(CURDIR)/files/nftables/geoip_cn.nft $(1)/etc/nikki/nftables/geoip_cn.nft
+	$(INSTALL_BIN) $(CURDIR)/files/nftables/geoip6_cn.nft $(1)/etc/nikki/nftables/geoip6_cn.nft
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(CURDIR)/files/nikki.conf $(1)/etc/config/nikki
@@ -97,25 +99,6 @@ if [ -z $${IPKG_INSTROOT} ]; then
 		commit firewall
 	EOF
 fi
-endef
-
-define Package/nikki/postinst
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ]; then
-  if [ -d /www/tinyfm ]; then
-    if [ ! -e /www/tinyfm/rootfs ]; then
-      ln -s / /www/tinyfm/rootfs
-    else
-      if [ -L /www/tinyfm/rootfs ]; then
-        if [ "$$(readlink /www/tinyfm/rootfs)" != "/" ]; then
-          rm -f /www/tinyfm/rootfs
-          ln -s / /www/tinyfm/rootfs
-        fi
-      fi
-    fi
-  fi
-fi
-exit 0
 endef
 
 define Build/Prepare

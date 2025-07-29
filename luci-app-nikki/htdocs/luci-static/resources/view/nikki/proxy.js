@@ -15,23 +15,22 @@ return view.extend({
             nikki.getIdentifiers(),
         ]);
     },
-
     render: function (data) {
         const hosts = data[1].hosts;
         const networks = data[2];
-        const d3 = data[3] || {};
-        const users = d3.users || [];
-        const groups = d3.groups || [];
-        const cgroups = d3.cgroups || [];
+        const users = data[3]?.users ?? [];
+        const groups = data[3]?.groups ?? [];
+        const cgroups = data[3]?.cgroups ?? [];
 
-        const m = new form.Map('nikki');
+        let m, s, o, so;
 
-        const s = m.section(form.NamedSection, 'proxy', 'proxy', _('🚀 Proxy Config'));
+        m = new form.Map('nikki');
 
-        // === Proxy Tab ===
+        s = m.section(form.NamedSection, 'proxy', 'proxy', _('Proxy Config'));
+
         s.tab('proxy', _('Proxy Config'));
 
-        let o = s.taboption('proxy', form.Flag, 'enabled', _('Enable'));
+        o = s.taboption('proxy', form.Flag, 'enabled', _('Enable'));
         o.rmempty = false;
 
         o = s.taboption('proxy', form.ListValue, 'tcp_mode', _('TCP Mode'));
@@ -62,13 +61,12 @@ return view.extend({
         o = s.taboption('proxy', form.Flag, 'fake_ip_ping_hijack', _('Fake-IP Ping Hijack'));
         o.rmempty = false;
 
-        // === Router Tab ===
         s.tab('router', _('Router Proxy'));
 
         o = s.taboption('router', form.Flag, 'router_proxy', _('Enable'));
         o.rmempty = false;
 
-        o = s.taboption('router', form.SectionValue, '_router_access_control', form.GridSection, 'router_access_control', _('Access Control'));
+        o = s.taboption('router', form.SectionValue, '_router_access_control', form.TableSection, 'router_access_control', _('Access Control'));
         o.retain = true;
         o.depends('router_proxy', '1');
 
@@ -76,19 +74,27 @@ return view.extend({
         o.subsection.anonymous = true;
         o.subsection.sortable = true;
 
-        let so = o.subsection.option(form.Flag, 'enabled', _('Enable'));
+        so = o.subsection.option(form.Flag, 'enabled', _('Enable'));
         so.default = '1';
         so.rmempty = false;
 
-        // Tampilkan user, group, cgroup secara vertikal & multi-value
         so = o.subsection.option(form.DynamicList, 'user', _('User'));
-        users.forEach(user => so.value(user));
-        
+
+        for (const user of users) {
+            so.value(user);
+        };
+
         so = o.subsection.option(form.DynamicList, 'group', _('Group'));
-        groups.forEach(group => so.value(group));
-        
+
+        for (const group of groups) {
+            so.value(group);
+        };
+
         so = o.subsection.option(form.DynamicList, 'cgroup', _('CGroup'));
-        cgroups.forEach(cgroup => so.value(cgroup));
+
+        for (const cgroup of cgroups) {
+            so.value(cgroup);
+        };
 
         so = o.subsection.option(form.Flag, 'dns', _('DNS'));
         so.rmempty = false;
@@ -96,68 +102,73 @@ return view.extend({
         so = o.subsection.option(form.Flag, 'proxy', _('Proxy'));
         so.rmempty = false;
 
-        // === LAN Tab ===
         s.tab('lan', _('LAN Proxy'));
-        
+
         o = s.taboption('lan', form.Flag, 'lan_proxy', _('Enable'));
         o.rmempty = false;
-        
+
         o = s.taboption('lan', form.DynamicList, 'lan_inbound_interface', _('Inbound Interface'));
         o.retain = true;
         o.rmempty = false;
         o.depends('lan_proxy', '1');
+
         for (const network of networks) {
-            if (network.getName() !== 'loopback') {
-                o.value(network.getName());
+            if (network.getName() === 'loopback') {
+                continue;
             }
+            o.value(network.getName());
         }
-        
-        // Ubah menjadi GridSection + SectionValue seperti Router Proxy
-        o = s.taboption('lan', form.SectionValue, '_lan_access_control', form.GridSection, 'lan_access_control', _('Access Control'));
+
+        o = s.taboption('lan', form.SectionValue, '_lan_access_control', form.TableSection, 'lan_access_control', _('Access Control'));
         o.retain = true;
         o.depends('lan_proxy', '1');
-        
+
         o.subsection.addremove = true;
         o.subsection.anonymous = true;
         o.subsection.sortable = true;
-        
+
         so = o.subsection.option(form.Flag, 'enabled', _('Enable'));
         so.default = '1';
         so.rmempty = false;
-        
+
         so = o.subsection.option(form.DynamicList, 'ip', 'IP');
+
         for (const mac in hosts) {
             const host = hosts[mac];
             for (const ip of host.ipaddrs) {
-                const hint = host.name || mac;
-                so.value(ip, '%s (%s)'.format(ip, hint));
-            }
-        }
-        
+                const hint = host.name ?? mac;
+                so.value(ip, hint ? '%s (%s)'.format(ip, hint) : ip);
+            };
+        };
+
         so = o.subsection.option(form.DynamicList, 'ip6', 'IP6');
+
         for (const mac in hosts) {
             const host = hosts[mac];
             for (const ip of host.ip6addrs) {
-                const hint = host.name || mac;
-                so.value(ip, '%s (%s)'.format(ip, hint));
-            }
-        }
-        
+                const hint = host.name ?? mac;
+                so.value(ip, hint ? '%s (%s)'.format(ip, hint) : ip);
+            };
+        };
+
         so = o.subsection.option(form.DynamicList, 'mac', 'MAC');
+
         for (const mac in hosts) {
             const host = hosts[mac];
-            const hint = host.name || (host.ipaddrs[0] || mac);
-            so.value(mac, '%s (%s)'.format(mac, hint));
-        }
-        
+            const hint = host.name ?? host.ipaddrs[0];
+            so.value(mac, hint ? '%s (%s)'.format(mac, hint) : mac);
+        };
+
         so = o.subsection.option(form.Flag, 'dns', _('DNS'));
         so.rmempty = false;
-        
+
         so = o.subsection.option(form.Flag, 'proxy', _('Proxy'));
         so.rmempty = false;
 
-        // === Bypass Tab ===
         s.tab('bypass', _('Bypass'));
+
+        o = s.taboption('bypass', form.Flag, 'bypass_china_mainland_ip', _('Bypass China Mainland IP'));
+        o.rmempty = false;
 
         o = s.taboption('bypass', form.Value, 'proxy_tcp_dport', _('Destination TCP Port to Proxy'));
         o.rmempty = false;
