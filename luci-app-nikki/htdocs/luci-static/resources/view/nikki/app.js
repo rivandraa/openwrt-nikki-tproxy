@@ -18,7 +18,14 @@ function renderStatus(status) {
 
     const container = E('div', {
         id: 'nikki-status-container',
-        style: `display: flex; align-items: center; justify-content: center;`
+        style: `
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+        `
     });
 
     const ring = E('span', {
@@ -31,9 +38,9 @@ function renderStatus(status) {
             style: `
                 display: block;
                 width: 32px; height: 32px; border-radius: 50%;
-                border: 4px solid ${border};
+                border: 14px solid ${border};
                 border-top-color: ${top};
-                animation: spin 1.5s linear infinite;
+                animation: spin 1s linear infinite;
             `
         }),
         E('span', {
@@ -41,7 +48,7 @@ function renderStatus(status) {
                 position: absolute;
                 top: 0; width: 32px; height: 32px;
                 display: flex; align-items: center; justify-content: center;
-                font-size: 15px; color: ${border};
+                font-size: 0; color: ${border};
             `
         }, emoji)
     ]);
@@ -83,11 +90,10 @@ function updateStatus(element, status) {
     }
 }
 
-// Fungsi tambah spinner dan disable tombol saat proses async
 function addSpinnerToButton(eventName, asyncAction) {
     window.addEventListener(eventName, () => {
         const button = [...document.querySelectorAll('button')].find(btn =>
-            btn.getAttribute('onclick')?.includes(eventName)
+            btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(eventName)
         );
         if (!button) return;
 
@@ -102,7 +108,6 @@ function addSpinnerToButton(eventName, asyncAction) {
     });
 }
 
-// Tambahkan style untuk spinner tombol
 let styleEl = document.getElementById('nikki-spinner-style');
 if (!styleEl) {
     styleEl = document.createElement('style');
@@ -116,7 +121,25 @@ if (!styleEl) {
     document.head.appendChild(styleEl);
 }
 
-// Fungsi helper versi
+// Tambahkan responsive style
+let responsiveStyle = document.getElementById('nikki-responsive-style');
+if (!responsiveStyle) {
+    responsiveStyle = document.createElement('style');
+    responsiveStyle.id = 'nikki-responsive-style';
+    responsiveStyle.innerHTML = `
+        @media (max-width: 600px) {
+            #nikki-status-container {
+                flex-direction: column;
+            }
+            .cbi-button {
+                width: 100%;
+                font-size: 14px;
+            }
+        }
+    `;
+    document.head.appendChild(responsiveStyle);
+}
+
 function extractVersion(full) {
     const m = full.match(/v?(\d+\.\d+\.\d+)(-.+)?/);
     return m ? { main: m[1], suffix: m[2] || "" } : { main: full, suffix: "" };
@@ -207,7 +230,6 @@ return view.extend({
 
         const m = new form.Map('nikki');
 
-        // === NOTIFIKASI UPDATE APP ===
         setTimeout(() => {
             const currentVersionRaw = extractVersion(appVersion || "unknown");
             const currentVersion = normalizeVersion(currentVersionRaw);
@@ -223,11 +245,10 @@ return view.extend({
                     }
                 })
                 .catch(err => {
-                    console.warn("Gagal memeriksa versi terbaru (non-blocking):", err);
+                    console.warn("Gagal memeriksa versi terbaru:", err);
                 });
         }, 100);
 
-        // === STATUS SECTION ===
         let s = m.section(form.TableSection, 'status', _('📊 Status'));
         s.anonymous = true;
 
@@ -251,11 +272,16 @@ return view.extend({
         o.readonly = true;
         o.cfgvalue = () => coreVersion;
 
-        // === SERVICE CONTROLS ===
         o = s.option(form.DummyValue, '_controls', _('Service Controls'));
         o.rawhtml = true;
         o.cfgvalue = () => `
-            <div style="display:flex;justify-content:center;gap:8px;">
+            <div style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                padding: 10px 0;
+            ">
                 <button type="button" class="cbi-button cbi-button-action" onclick="window.dispatchEvent(new CustomEvent('nikki-reload-clicked'))">RELOAD SERVICE</button>
                 <button type="button" class="cbi-button cbi-button-negative" onclick="window.dispatchEvent(new CustomEvent('nikki-restart-clicked'))">RESTART SERVICE</button>
                 <button type="button" class="cbi-button cbi-button-positive" onclick="window.dispatchEvent(new CustomEvent('nikki-update_dashboard-clicked'))">UPDATE DASHBOARD</button>
@@ -303,7 +329,7 @@ return view.extend({
             });
         }, 100);
 
-        // === CONFIG SECTION ===
+        // CONFIG SECTION
         s = m.section(form.NamedSection, 'config', 'config', _('⚙️ App Config'));
         o = s.option(form.Flag, 'enabled', _('Enable'));
         o.rmempty = false;
@@ -338,7 +364,7 @@ return view.extend({
         o = s.option(form.Flag, 'core_only', _('Core Only'));
         o.rmempty = false;
 
-        // === ENV SECTION ===
+        // ENV SECTION
         s = m.section(form.NamedSection, 'env', 'env', _('🛠️ Core Environment Variable Config'));
 
         o = s.option(form.DynamicList, 'safe_paths', _('Safe Paths'));
