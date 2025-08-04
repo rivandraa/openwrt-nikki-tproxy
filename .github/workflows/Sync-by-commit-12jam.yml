@@ -27,6 +27,10 @@ jobs:
           git remote add upstream https://github.com/nikkinikki-org/OpenWrt-nikki.git
           git fetch upstream main
 
+      - name: Ignore upstream-source from git
+        run: |
+          echo "/upstream-source/" >> .git/info/exclude
+
       - name: Get previous synced commit
         id: get_last_commit
         run: |
