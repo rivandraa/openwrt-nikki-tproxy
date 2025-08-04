@@ -45,7 +45,7 @@ jobs:
 
       - name: Clone upstream repo for file comparison
         run: |
-          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
+          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git tmp-upstream
 
       - name: List real changed files from upstream only
         id: changed_files
@@ -55,7 +55,7 @@ jobs:
 
           for file in $(git diff --name-only ${{ steps.get_last_commit.outputs.last_commit }} ${{ steps.get_latest_commit.outputs.latest_commit }} | grep -E '^(luci-app-nikki|nikki)/'); do
             BASE=".git/tmp-base/$file"
-            REMOTE="upstream-source/$file"
+            REMOTE="tmp-upstream/$file"
 
             mkdir -p "$(dirname "$BASE")"
             git show "${{ steps.get_last_commit.outputs.last_commit }}:$file" > "$BASE" 2>/dev/null || touch "$BASE"
@@ -76,7 +76,7 @@ jobs:
           for file in $(cat changed_files.txt); do
             echo "🔄 Merging file: $file"
             LOCAL="$file"
-            REMOTE="upstream-source/$file"
+            REMOTE="tmp-upstream/$file"
             BASE=".git/tmp-base/$file"
 
             mkdir -p "$(dirname "$LOCAL")"
