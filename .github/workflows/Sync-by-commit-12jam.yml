@@ -3,8 +3,8 @@ name: Sync from Upstream 12 jam-modif
 on:
   workflow_dispatch:
   schedule:
-   - cron: '0 22 * * *'  # 06:00 WITA
-   - cron: '0 10 * * *'  # 18:00 WITA
+    - cron: '0 22 * * *'  # 06:00 WITA
+    - cron: '0 10 * * *'  # 18:00 WITA
 
 jobs:
   selective-sync:
@@ -112,7 +112,8 @@ jobs:
       - name: Commit if there are changes
         id: commit_check
         run: |
-          git add .last-upstream-commit luci-app-nikki nikki || true
+          git add -A
+
           if ! git diff --cached --quiet; then
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             git commit -m "Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
