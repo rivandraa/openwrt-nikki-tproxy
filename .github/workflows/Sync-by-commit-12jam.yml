@@ -27,10 +27,6 @@ jobs:
           git remote add upstream https://github.com/nikkinikki-org/OpenWrt-nikki.git
           git fetch upstream main
 
-      - name: Ignore upstream-source from git
-        run: |
-          echo "/upstream-source/" >> .git/info/exclude
-
       - name: Get previous synced commit
         id: get_last_commit
         run: |
@@ -49,7 +45,7 @@ jobs:
 
       - name: Clone upstream repo for file comparison
         run: |
-          git clone --depth=1 --no-recurse-submodules --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
+          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
 
       - name: List real changed files from upstream only
         id: changed_files
@@ -75,6 +71,7 @@ jobs:
           echo "changed=$(paste -sd ',' changed_files.txt)" >> $GITHUB_OUTPUT
 
       - name: Merge and update files
+        if: steps.changed_files.outputs.changed != ''
         run: |
           for file in $(cat changed_files.txt); do
             echo "🔄 Merging file: $file"
@@ -109,27 +106,27 @@ jobs:
             fi
           done
 
-      - name: Update .last-upstream-commit
-        run: |
-          echo "${{ steps.get_latest_commit.outputs.latest_commit }}" > .last-upstream-commit
-
       - name: Commit if there are changes
         id: commit_check
         run: |
-          git add -A
+          git add luci-app-nikki nikki || true
+          CHANGED=$(git diff --cached --name-only)
 
-          if ! git diff --cached --quiet; then
+          if [ -n "$CHANGED" ]; then
+            echo "${{ steps.get_latest_commit.outputs.latest_commit }}" > .last-upstream-commit
+            git add .last-upstream-commit
+
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             git commit -m "Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
             git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
             git push origin main
           else
-            echo "No changes to commit"
+            echo "No relevant changes to commit"
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Notify to Telegram
-        if: always()
+        if: steps.commit_check.outputs.changes_detected == 'true'
         run: |
           REPO_URL="https://github.com/${{ github.repository }}"
           BRANCH="main"
