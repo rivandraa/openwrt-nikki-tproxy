@@ -45,7 +45,7 @@ jobs:
 
       - name: Clone upstream repo for file comparison
         run: |
-          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
+          git clone --depth=1 --no-recurse-submodules --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
 
       - name: List real changed files from upstream only
         id: changed_files
