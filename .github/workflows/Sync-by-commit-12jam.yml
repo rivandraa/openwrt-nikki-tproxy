@@ -1,4 +1,4 @@
-name: Sync from Upstream (by commit)
+name: Sync from Upstream 12
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-          submodules: false  # 🔥 inilah kunci perbaikan
+          submodules: false  # 💥 WAJIB: cegah error submodule
 
       - name: Setup Git
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: Clone upstream repo for file copy
         if: steps.check_upstream_diff.outputs.has_update == 'true'
         run: |
-          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git __upstream__
+          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git /tmp/upstream-copy
 
       - name: Merge and show conflict markers in changed files
         if: steps.check_upstream_diff.outputs.has_update == 'true'
@@ -69,7 +69,7 @@ jobs:
           for file in $(cat changed_files.txt); do
             echo "🔄 Merging file: $file"
             LOCAL="$file"
-            REMOTE="__upstream__/$file"
+            REMOTE="/tmp/upstream-copy/$file"
             BASE=".git/tmp-base-$file"
 
             mkdir -p "$(dirname "$BASE")"
