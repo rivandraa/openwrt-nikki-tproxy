@@ -60,7 +60,7 @@ jobs:
       - name: Clone upstream repo for file copy
         if: steps.check_upstream_diff.outputs.has_update == 'true'
         run: |
-          GIT_DIR=. git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
+          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream_temp
 
       - name: Merge and show conflict markers in changed files
         if: steps.check_upstream_diff.outputs.has_update == 'true'
@@ -68,7 +68,7 @@ jobs:
           for file in $(cat changed_files.txt); do
             echo "🔄 Merging file: $file"
             LOCAL="$file"
-            REMOTE="upstream-source/$file"
+            REMOTE="upstream_temp/$file"
             BASE=".git/tmp-base-$file"
 
             mkdir -p "$(dirname "$BASE")"
