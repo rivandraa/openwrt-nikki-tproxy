@@ -22,6 +22,13 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Clean submodule residue if any
+        run: |
+          rm -f .gitmodules
+          git submodule deinit -f -- all || true
+          git rm -f upstream-source || true
+          rm -rf .git/modules/upstream-source
+
       - name: Add upstream and fetch
         run: |
           git remote add upstream https://github.com/nikkinikki-org/OpenWrt-nikki.git
