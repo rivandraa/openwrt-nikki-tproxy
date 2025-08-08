@@ -53,7 +53,7 @@ jobs:
 
       - name: Clone upstream repo for file copy
         run: |
-          git clone --depth=1 --branch=dev https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
+          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
 
       - name: Merge and show conflict markers in changed files
         run: |
@@ -101,7 +101,7 @@ jobs:
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             git commit -m "Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
             git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
-            git push origin main
+            git push origin dev
           else
             echo "No changes to commit"
             echo "changes_detected=false" >> $GITHUB_OUTPUT
