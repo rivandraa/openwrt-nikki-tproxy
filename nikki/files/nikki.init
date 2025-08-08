@@ -138,7 +138,6 @@ start_service() {
 		if [ "$overwrite_sniffer_sniff" = 1 ]; then
 			yq -M -i 'del(.sniffer.sniff)' "$RUN_PROFILE_PATH"
 		fi
-<<<<<<< LOCAL
 	        if [ "$mixin_file_content" == 0 ]; then
 	          ucode -S "$MIXIN_UC" | yq -M -p json -o yaml \
 	          | yq -M ea '
@@ -161,13 +160,6 @@ start_service() {
 	        
 	          mv "$RUN_PROFILE_PATH.new" "$RUN_PROFILE_PATH"
 	        fi
-=======
-		if [ "$mixin_file_content" = 0 ]; then
-			ucode -S "$MIXIN_UC" | yq -M -p json -o yaml | yq -M -i ea '... comments="" | . as $item ireduce ({}; . * $item ) | .proxies = .nikki-proxies + .proxies | del(.nikki-proxies) | .rules = .nikki-rules + .rules | del(.nikki-rules)' "$RUN_PROFILE_PATH" -
-		elif [ "$mixin_file_content" = 1 ]; then
-			ucode -S "$MIXIN_UC" | yq -M -p json -o yaml | yq -M -i ea '... comments="" | . as $item ireduce ({}; . * $item ) | .proxies = .nikki-proxies + .proxies | del(.nikki-proxies) | .rules = .nikki-rules + .rules | del(.nikki-rules)' "$RUN_PROFILE_PATH" "$MIXIN_FILE_PATH" -
-		fi
->>>>>>> UPSTREAM
 	fi
 	# test profile
 	if [ "$test_profile" = 1 ]; then
