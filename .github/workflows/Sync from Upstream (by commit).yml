@@ -11,6 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clean submodule residue if any
+        run: |
+          rm -f .gitmodules
+          git submodule deinit -f -- all || true
+          git rm -f upstream-source || true
+          rm -rf .git/modules/upstream-source
+          
       - name: Checkout destination repo (this repo)
         uses: actions/checkout@v4
         with:
@@ -21,13 +28,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Clean submodule residue if any
-        run: |
-          rm -f .gitmodules
-          git submodule deinit -f -- all || true
-          git rm -f upstream-source || true
-          rm -rf .git/modules/upstream-source
 
       - name: Add upstream and fetch
         run: |
