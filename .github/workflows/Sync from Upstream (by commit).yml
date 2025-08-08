@@ -111,7 +111,7 @@ jobs:
         if: always()
         run: |
           REPO_URL="https://github.com/${{ github.repository }}"
-          BRANCH="main"
+          BRANCH="dev"
           FILES=$(git diff-tree --no-commit-id --name-status -r HEAD | grep -E '^(A|M|D)\s+(luci-app-nikki|nikki)/' || true)
       
           if [ -n "$FILES" ]; then
