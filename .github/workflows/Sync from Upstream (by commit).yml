@@ -11,11 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clean up broken submodule config
+      - name: Remove broken submodule config if exists
         run: |
           rm -f .gitmodules
           git config -f .git/config --remove-section submodule.upstream-source || true
-          git rm --cached upstream-source || true
+          git submodule deinit -f upstream-source || true
+          git rm -f upstream-source || true
           rm -rf .git/modules/upstream-source || true
           
       - name: Checkout destination repo (this repo)
@@ -60,7 +61,7 @@ jobs:
 
       - name: Clone upstream repo for file copy
         run: |
-          git clone --depth=1 --no-recurse-submodules --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
+          git clone --depth=1 --no-recurse-submodules --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-clone
 
       - name: Merge and show conflict markers in changed files
         run: |
