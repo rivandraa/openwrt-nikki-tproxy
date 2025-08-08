@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clean submodule residue if any
+      - name: Clean up broken submodule config
         run: |
           rm -f .gitmodules
-          git submodule deinit -f -- all || true
-          git rm -f upstream-source || true
-          rm -rf .git/modules/upstream-source
+          git config -f .git/config --remove-section submodule.upstream-source || true
+          git rm --cached upstream-source || true
+          rm -rf .git/modules/upstream-source || true
           
       - name: Checkout destination repo (this repo)
         uses: actions/checkout@v4
