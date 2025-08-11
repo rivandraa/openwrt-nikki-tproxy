@@ -109,7 +109,7 @@ jobs:
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             git commit -m "Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
             git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
-            git push origin main // ganti jika bukan main
+            git push origin dev // ganti jika bukan main
           else
             echo "No changes to commit"
             echo "changes_detected=false" >> $GITHUB_OUTPUT
