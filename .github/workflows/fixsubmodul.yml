@@ -4,15 +4,21 @@ on:
   workflow_dispatch: # bisa dijalankan manual dari GitHub Actions tab
 
 jobs:
-  clean-submodule:
+  cleanup-submodule:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Remove broken submodule
+      - name: Set git identity
+        run: |
+          git config --global user.name "rivandraa"
+          git config --global user.email "zesssttt@gmail.com"
+
+      - name: Remove submodule reference
         run: |
           git rm -r --cached upstream-source || true
           rm -rf upstream-source
           git commit -m "Remove old submodule reference" || echo "No changes"
-          git push origin HEAD:${GITHUB_REF#refs/heads/}
+          git push
+
