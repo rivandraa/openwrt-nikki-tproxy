@@ -2,23 +2,15 @@ name: Sync from Upstream (by commit)
 
 on:
   workflow_dispatch:
-  #schedule:
-    #- cron: '0 22 * * *'  # 06:00 WITA
-    #- cron: '0 10 * * *'  # 18:00 WITA
+  schedule:
+    - cron: '0 22 * * *'  # 06:00 WITA
+    - cron: '0 10 * * *'  # 18:00 WITA
 
 jobs:
   selective-sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Remove broken submodule config if exists
-        run: |
-          rm -f .gitmodules
-          git config -f .git/config --remove-section submodule.upstream-source || true
-          git submodule deinit -f upstream-source || true
-          git rm -f upstream-source || true
-          rm -rf .git/modules/upstream-source || true
-          
       - name: Checkout destination repo (this repo)
         uses: actions/checkout@v4
         with:
@@ -61,7 +53,7 @@ jobs:
 
       - name: Clone upstream repo for file copy
         run: |
-          git clone --depth=1 --no-recurse-submodules --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-clone
+          git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
 
       - name: Merge and show conflict markers in changed files
         run: |
