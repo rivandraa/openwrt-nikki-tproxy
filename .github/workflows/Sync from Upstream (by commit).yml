@@ -57,6 +57,7 @@ jobs:
 
       - name: Merge and show conflict markers in changed files
         run: |
+          HAS_CONFLICTS="false"
           for file in $(cat changed_files.txt); do
             echo "🔄 Merging file: $file"
           
@@ -71,11 +72,13 @@ jobs:
           
             if [ -f "$REMOTE" ]; then
               if [ -f "$LOCAL" ]; then
-                # ✅ Merge pakai format -L yang kompatibel
-                git merge-file -p -L LOCAL -L BASE -L UPSTREAM "$LOCAL" "$BASE" "$REMOTE" > "$LOCAL.merged" || true
+                if ! git merge-file -p -L LOCAL -L BASE -L UPSTREAM "$LOCAL" "$BASE" "$REMOTE" > "$LOCAL.merged"; then
+                  echo "⚠️ Konflik saat merge: $file"
+                  HAS_CONFLICTS="true"
+                fi
                 if [ -s "$LOCAL.merged" ]; then
                   mv "$LOCAL.merged" "$LOCAL"
-                  echo "✅ Merge sukses: $file"
+                  echo "✅ Merge selesai: $file"
                 else
                   echo "⚠️ Merge kosong: $file"
                   rm -f "$LOCAL.merged"
@@ -88,6 +91,7 @@ jobs:
               echo "⚠️ File remote tidak ditemukan: $REMOTE"
             fi
           done
+          echo "has_conflicts=$HAS_CONFLICTS" >> $GITHUB_OUTPUT
 
       - name: Update .last-upstream-commit
         run: |
@@ -98,10 +102,17 @@ jobs:
         run: |
           git add .last-upstream-commit luci-app-nikki nikki || true
           if ! git diff --cached --quiet; then
-            echo "changes_detected=true" >> $GITHUB_OUTPUT
-            git commit -m "Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
-            git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
-            git push origin main
+            if [ "${{ steps.changed_files.outputs.changed }}" != "" ]; then
+              if grep -r -q '<<<<<<< LOCAL' luci-app-nikki nikki; then
+                MSG="⚠️ Sync from upstream (ada konflik): ${{ steps.get_latest_commit.outputs.latest_commit }}"
+              else
+                MSG="Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
+              fi
+              echo "changes_detected=true" >> $GITHUB_OUTPUT
+              git commit -m "$MSG"
+              git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
+              git push origin main
+            fi
           else
             echo "No changes to commit"
             echo "changes_detected=false" >> $GITHUB_OUTPUT
