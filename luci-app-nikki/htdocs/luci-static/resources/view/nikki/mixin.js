@@ -119,10 +119,9 @@ return view.extend({
         o.value('https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip', 'YACD');
         o.value('https://github.com/MetaCubeX/Razord-meta/archive/refs/heads/gh-pages.zip', 'Razord');
 
-        o = s.taboption('external_control', form.Value, 'api_listen', '*' + ' ' + _('API Listen'));
+        o = s.taboption('external_control', form.Value, 'api_listen', _('API Listen'));
         o.datatype = 'ipaddrport(1)';
         o.placeholder = _('Unmodified');
-        o.rmempty = false;
 
         o = s.taboption('external_control', form.Value, 'api_secret', _('API Secret'));
         o.password = true;
@@ -154,15 +153,13 @@ return view.extend({
         o.datatype = 'port';
         o.placeholder = _('Unmodified');
 
-        o = s.taboption('inbound', form.Value, 'redir_port', '*' + ' ' + _('Redirect Port'));
+        o = s.taboption('inbound', form.Value, 'redir_port', _('Redirect Port'));
         o.datatype = 'port';
         o.placeholder = _('Unmodified');
-        o.rmempty = false;
 
-        o = s.taboption('inbound', form.Value, 'tproxy_port', '*' + ' ' + _('TPROXY Port'));
+        o = s.taboption('inbound', form.Value, 'tproxy_port', _('TPROXY Port'));
         o.datatype = 'port';
         o.placeholder = _('Unmodified');
-        o.rmempty = false;
 
         o = s.taboption('inbound', form.Flag, 'authentication', _('Overwrite Authentication'));
         o.rmempty = false;
@@ -187,6 +184,7 @@ return view.extend({
 
         s.tab('tun', _('TUN Config'));
 
+<<<<<<< LOCAL
         o = s.taboption('tun', form.ListValue, 'tun_config', _('TUN Status'))
         o.optional = false
         o.default = '1';
@@ -194,8 +192,16 @@ return view.extend({
         o.value('0', _('Disable'))
 
         o = s.taboption('tun', form.Value, 'tun_device', '*' + ' ' + _('Device Name'));
+=======
+        o = s.taboption('tun', form.ListValue, 'tun_enabled', _('Enable'));
+        o.optional = true;
         o.placeholder = _('Unmodified');
-        o.rmempty = false;
+        o.value('0', _('Disable'));
+        o.value('1', _('Enable'));
+
+        o = s.taboption('tun', form.Value, 'tun_device', _('Device Name'));
+>>>>>>> UPSTREAM
+        o.placeholder = _('Unmodified');
 
         o = s.taboption('tun', form.ListValue, 'tun_stack', _('Stack'));
         o.optional = true;
@@ -302,6 +308,7 @@ return view.extend({
 
         s.tab('dns', _('DNS Config'));
 
+<<<<<<< LOCAL
         o = s.taboption('dns', form.ListValue, 'dns_config', _('DNS Status'))
         o.optional = false
         o.default = '1';
@@ -342,6 +349,17 @@ return view.extend({
                 : value;
             m.uci.set('nikki', section_id, 'dns_listen', '0.0.0.0:' + port);
         };
+=======
+        o = s.taboption('dns', form.ListValue, 'dns_enabled', _('Enable'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('0', _('Disable'));
+        o.value('1', _('Enable'));
+
+        o = s.taboption('dns', form.Value, 'dns_listen', _('DNS Listen'));
+        o.datatype = 'ipaddrport(1)';
+        o.placeholder = _('Unmodified');
+>>>>>>> UPSTREAM
 
         o = s.taboption('dns', form.ListValue, 'dns_ipv6', 'IPv6');
         o.optional = true;
@@ -349,15 +367,15 @@ return view.extend({
         o.value('0', _('Disable'));
         o.value('1', _('Enable'));
 
-        o = s.taboption('dns', form.ListValue, 'dns_mode', '*' + ' ' + _('DNS Mode'));
+        o = s.taboption('dns', form.ListValue, 'dns_mode', _('DNS Mode'));
+        o.optional = true;
         o.placeholder = _('Unmodified');
         o.value('redir-host', 'Redir-Host');
         o.value('fake-ip', 'Fake-IP');
 
-        o = s.taboption('dns', form.Value, 'fake_ip_range', '*' + ' ' + _('Fake-IP Range'));
+        o = s.taboption('dns', form.Value, 'fake_ip_range', _('Fake-IP Range'));
         o.datatype = 'cidr4';
         o.placeholder = _('Unmodified');
-        o.rmempty = false;
 
         o = s.taboption('dns', form.Flag, 'fake_ip_filter', _('Overwrite Fake-IP Filter'));
         o.rmempty = false;

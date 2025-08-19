@@ -126,6 +126,11 @@ return view.extend({
         so.rmempty = false;
         
         so = o.subsection.option(form.DynamicList, 'ip', 'IP');
+<<<<<<< LOCAL
+=======
+        so.datatype = 'ip4addr';
+
+>>>>>>> UPSTREAM
         for (const mac in hosts) {
             const host = hosts[mac];
             for (const ip of host.ipaddrs) {
@@ -135,6 +140,11 @@ return view.extend({
         }
         
         so = o.subsection.option(form.DynamicList, 'ip6', 'IP6');
+<<<<<<< LOCAL
+=======
+        so.datatype = 'ip6addr';
+
+>>>>>>> UPSTREAM
         for (const mac in hosts) {
             const host = hosts[mac];
             for (const ip of host.ip6addrs) {
@@ -144,6 +154,11 @@ return view.extend({
         }
         
         so = o.subsection.option(form.DynamicList, 'mac', 'MAC');
+<<<<<<< LOCAL
+=======
+        so.datatype = 'macaddr';
+
+>>>>>>> UPSTREAM
         for (const mac in hosts) {
             const host = hosts[mac];
             const hint = host.name || (host.ipaddrs[0] || mac);
