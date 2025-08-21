@@ -111,6 +111,7 @@ return baseclass.extend({
         });
     
         const apiListen = profile['external-controller'];
+<<<<<<< LOCAL
         const apiSecret = profile['secret'] || '';
     
         if (!apiListen) {
@@ -118,6 +119,12 @@ return baseclass.extend({
             return;
         }
     
+=======
+        const apiSecret = profile['secret'] ?? '';
+        if (!apiListen) {
+            return Promise.reject('API has not been configured');
+        }
+>>>>>>> UPSTREAM
         const apiPort = apiListen.substring(apiListen.lastIndexOf(':') + 1);
         const url = `http://${window.location.hostname}:${apiPort}${path}`;
     
@@ -138,6 +145,7 @@ return baseclass.extend({
     
         const uiName = profile['external-ui-name'];
         const apiListen = profile['external-controller'];
+<<<<<<< LOCAL
         const apiSecret = profile['secret'] || '';
     
         if (!apiListen) {
@@ -145,6 +153,12 @@ return baseclass.extend({
             return;
         }
     
+=======
+        const apiSecret = profile['secret'] ?? '';
+        if (!apiListen) {
+            return Promise.reject('API has not been configured');
+        }
+>>>>>>> UPSTREAM
         const apiPort = apiListen.substring(apiListen.lastIndexOf(':') + 1);
     
         const params = {
@@ -154,6 +168,7 @@ return baseclass.extend({
             secret: apiSecret
         };
         const query = new URLSearchParams(params).toString();
+<<<<<<< LOCAL
     
         const url = uiName
             ? `http://${window.location.hostname}:${apiPort}/ui/${uiName}/?${query}`
@@ -162,6 +177,16 @@ return baseclass.extend({
         setTimeout(function () {
             window.open(url, '_blank');
         }, 0);
+=======
+        let url;
+        if (uiName) {
+            url = `http://${window.location.hostname}:${apiPort}/ui/${uiName}/?${query}`;
+        } else {
+            url = `http://${window.location.hostname}:${apiPort}/ui/?${query}`;
+        }
+        setTimeout(function () { window.open(url, '_blank') }, 0);
+        return Promise.resolve();
+>>>>>>> UPSTREAM
     },
 
     updateDashboard: function () {
