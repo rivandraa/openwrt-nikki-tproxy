@@ -34,7 +34,7 @@ jobs:
           if [ "$RELEASE_TYPE" = "latest" ]; then
             TAG=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
           else
-            TAG=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases \
+            TAG=$(curl -s https://api.github.com/repos/vernesong/mihomo/releases \
               | jq -r '.[] | select(.prerelease) | .tag_name' | head -n1)
           fi
       
