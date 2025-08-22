@@ -4,7 +4,7 @@ PKG_NAME:=nikki
 PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git
+PKG_SOURCE_URL:=https://github.com/vernesong/mihomo.git
 PKG_SOURCE_DATE:=2025-08-22
 PKG_SOURCE_VERSION:=2a8831b0d0f5d6db6de3cebb9fb540b4b4a44a97
 PKG_MIRROR_HASH:=1848fd5e6a79779f9d3a7c8e69f32b3a89acb93ec150e0241f1d62a6e48339ed
