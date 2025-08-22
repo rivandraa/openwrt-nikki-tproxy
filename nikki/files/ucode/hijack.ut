@@ -418,13 +418,7 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-<<<<<<< LOCAL
-		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
-=======
-		ip daddr @china_ip counter return
-		ip6 daddr @china_ip6 counter return
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
->>>>>>> UPSTREAM
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
 		meta l4proto { tcp, udp } ip6 dscp @bypass_dscp counter return
@@ -448,13 +442,7 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-<<<<<<< LOCAL
-		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
-=======
-		ip daddr @china_ip counter return
-		ip6 daddr @china_ip6 counter return
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
->>>>>>> UPSTREAM
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
 		meta l4proto { tcp, udp } ip6 dscp @bypass_dscp counter return
@@ -495,13 +483,7 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-<<<<<<< LOCAL
-		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
-=======
-		ip daddr @china_ip counter return
-		ip6 daddr @china_ip6 counter return
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
->>>>>>> UPSTREAM
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
 		meta l4proto { tcp, udp } ip6 dscp @bypass_dscp counter return
@@ -520,13 +502,7 @@ table inet nikki {
 		ct direction reply counter return
 		ip daddr @reserved_ip counter return
 		ip6 daddr @reserved_ip6 counter return
-<<<<<<< LOCAL
-		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport ip daddr != {{ fake_ip_range }} counter return
-=======
-		ip daddr @china_ip counter return
-		ip6 daddr @china_ip6 counter return
 		meta nfproto ipv4 meta l4proto . th dport != @proxy_dport {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
->>>>>>> UPSTREAM
 		meta nfproto ipv6 meta l4proto . th dport != @proxy_dport counter return
 		meta l4proto { tcp, udp } ip dscp @bypass_dscp {% if (fake_ip_range): %} ip daddr != {{ fake_ip_range }} {% endif %} counter return
 		meta l4proto { tcp, udp } ip6 dscp @bypass_dscp counter return
@@ -546,14 +522,3 @@ table inet nikki {
 	}
 	{% endif %}
 }
-
-<<<<<<< LOCAL
-include "/etc/nikki/nftables/reserved_ip.nft"
-include "/etc/nikki/nftables/reserved_ip6.nft"
-
-=======
-{% if (bypass_china_mainland_ip): %}
-include "/etc/nikki/nftables/geoip_cn.nft"
-include "/etc/nikki/nftables/geoip6_cn.nft"
-{% endif %}
->>>>>>> UPSTREAM
