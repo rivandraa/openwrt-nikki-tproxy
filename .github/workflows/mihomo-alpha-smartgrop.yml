@@ -1,0 +1,100 @@
+name: Generate Mihomo SmartGroup update
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Jenis rilis"
+        required: true
+        default: "latest"
+        type: choice
+        options:
+          - latest
+          - prerelease
+
+permissions:
+  contents: write  # penting agar GITHUB_TOKEN bisa push
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (jq & zstd)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq zstd
+
+      - name: Clone Mihomo dan buat archive
+        run: |
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+      
+          if [ "$RELEASE_TYPE" = "latest" ]; then
+            TAG=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
+          else
+            TAG=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases \
+              | jq -r '.[] | select(.prerelease) | .tag_name' | head -n1)
+          fi
+      
+          echo "Menggunakan tag: $TAG"
+      
+          git clone https://github.com/MetaCubeX/mihomo.git
+          cd mihomo
+          git checkout "$TAG"
+      
+          COMMIT=$(git rev-parse HEAD)
+          DATE=$(git log -1 --format=%cd --date=format:'%Y-%m-%d')
+      
+          if [ "$RELEASE_TYPE" = "latest" ]; then
+            VERSION=${TAG}
+          else
+            VERSION=${TAG}-${COMMIT:0:8}
+          fi
+      
+          ARCHIVE_NAME=mihomo-${DATE}~${COMMIT:0:8}
+      
+          git archive --format=tar --prefix="${ARCHIVE_NAME}/" HEAD | zstd -19 -o "../${ARCHIVE_NAME}.tar.zst"
+          HASH=$(sha256sum "../${ARCHIVE_NAME}.tar.zst" | cut -d ' ' -f1)
+      
+          echo "DATE=$DATE" >> $GITHUB_ENV
+          echo "COMMIT=$COMMIT" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Cek dan edit Makefile
+        run: |
+          MAKEFILE=nikki/Makefile  # Ganti jika lokasi berbeda
+          echo "--- CEK FILE ---"
+          ls -lah "$MAKEFILE"
+          echo "--- ISI AWAL ---"
+          cat "$MAKEFILE"
+
+          sed -i "s/^ *PKG_SOURCE_DATE *:= *.*/PKG_SOURCE_DATE:=${DATE}/" "$MAKEFILE"
+          sed -i "s/^ *PKG_SOURCE_VERSION *:= *.*/PKG_SOURCE_VERSION:=${COMMIT}/" "$MAKEFILE"
+          sed -i "s/^ *PKG_MIRROR_HASH *:= *.*/PKG_MIRROR_HASH:=${HASH}/" "$MAKEFILE"
+          sed -i "s/^ *PKG_BUILD_VERSION *:= *.*/PKG_BUILD_VERSION:=${VERSION}/" "$MAKEFILE"
+
+          # Jika sebelumnya pakai format Prerelease
+          sed -i 's/^PKG_BUILD_VERSION:=Prerelease-\(Alpha-[a-z0-9]*\)/PKG_BUILD_VERSION:=\1/' "$MAKEFILE"
+
+          echo "--- ISI SETELAH EDIT ---"
+          cat "$MAKEFILE"
+
+      - name: Commit and push updated Makefile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.email "you@example.com"
+          git config user.name "Your Name"
+
+          git add nikki/Makefile
+
+          if git diff --cached --quiet; then
+            echo "Tidak ada perubahan, tidak melakukan commit."
+          else
+            git commit -m "Update Makefile after workflow run"
+            git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+            git push origin HEAD
+          fi
