@@ -2,9 +2,9 @@ name: Sync from Upstream Modifikasi
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 22 * * *'  # 06:00 WITA
-    - cron: '0 10 * * *'  # 18:00 WITA
+#  schedule:
+#    - cron: '0 22 * * *'  # 06:00 WITA
+#    - cron: '0 10 * * *'  # 18:00 WITA
 
 jobs:
   selective-sync:
