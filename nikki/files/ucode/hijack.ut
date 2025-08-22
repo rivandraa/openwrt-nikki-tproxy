@@ -522,6 +522,3 @@ table inet nikki {
 	}
 	{% endif %}
 }
-
-include "/etc/nikki/nftables/reserved_ip.nft"
-include "/etc/nikki/nftables/reserved_ip6.nft"
