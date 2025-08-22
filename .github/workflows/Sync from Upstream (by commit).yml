@@ -128,7 +128,7 @@ jobs:
               echo "changes_detected=true" >> $GITHUB_OUTPUT
               git commit -m "$MSG"
               git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
-              git push origin main
+              git push origin mainrelease
             fi
           else
             echo "No changes to commit"
@@ -139,7 +139,7 @@ jobs:
         if: always()
         run: |
           REPO_URL="https://github.com/${{ github.repository }}"
-          BRANCH="main"
+          BRANCH="mainrelease"
           FILES=$(git diff-tree --no-commit-id --name-status -r HEAD | grep -E '^(A|M|D)\s+(luci-app-nikki|nikki)/' || true)
 
           if [ -n "$FILES" ]; then
