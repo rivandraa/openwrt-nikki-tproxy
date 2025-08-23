@@ -9,58 +9,59 @@ let currentStatus = 'stopped';
 
 function renderStatus(status) {
     const colorMap = {
-        running: { border: '#4caf50', top: '#81c784', emoji: '🟢', text: _('Running') },
-        reloading: { border: '#ff9800', top: '#ffcc80', emoji: '🟡', text: _('Reloading...') },
-        stopped: { border: '#f44336', top: '#e57373', emoji: '🔴', text: _('Not Running') }
+        running: {
+            border: '#4caf50',
+            emoji: '🟢',
+            text: _('Running')
+        },
+        reloading: {
+            border: '#ff9800',
+            emoji: '🟡',
+            text: _('Reloading...')
+        },
+        stopped: {
+            border: '#f44336',
+            emoji: '🔴',
+            text: _('Not Running')
+        }
     };
 
-    const { border, top, emoji, text } = colorMap[status] || colorMap.stopped;
+    const { border, emoji, text } = colorMap[status] || colorMap.stopped;
 
     const container = E('div', {
         id: 'nikki-status-container',
-        style: `display: flex; align-items: center; justify-content: center;`
+        style: `
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        `
     });
 
     const ring = E('span', {
         style: `
-            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-            position: relative;
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: ${border}33; /* transparansi ringan */
+            color: ${border};
+            font-size: 14px;
         `
-    }, [
-        E('span', {
-            style: `
-                display: block;
-                width: 32px; height: 32px; border-radius: 50%;
-                border: 4px solid ${border};
-                border-top-color: ${top};
-                animation: spin 1.5s linear infinite;
-            `
-        }),
-        E('span', {
-            style: `
-                position: absolute;
-                top: 0; width: 32px; height: 32px;
-                display: flex; align-items: center; justify-content: center;
-                font-size: 15px; color: ${border};
-            `
-        }, emoji)
-    ]);
+    }, emoji);
+
+    const label = E('span', {
+        style: `
+            font-weight: bold;
+            color: ${border};
+            font-size: 14px;
+        `
+    }, text);
 
     container.title = text;
     container.appendChild(ring);
-
-    let styleElement = document.getElementById('nikki-status-style');
-    if (!styleElement) {
-        styleElement = document.createElement('style');
-        styleElement.id = 'nikki-status-style';
-        styleElement.innerHTML = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(styleElement);
-    }
+    container.appendChild(label);
 
     const input = E('input', {
         id: 'core_status',
@@ -83,11 +84,21 @@ function updateStatus(element, status) {
     }
 }
 
+function updateStatus(element, status) {
+    currentStatus = status;
+    if (element) {
+        const parent = element.parentElement;
+        if (parent) {
+            parent.replaceChild(renderStatus(status), element);
+        }
+    }
+}
+
 // Fungsi tambah spinner dan disable tombol saat proses async
 function addSpinnerToButton(eventName, asyncAction) {
     window.addEventListener(eventName, () => {
         const button = [...document.querySelectorAll('button')].find(btn =>
-            btn.getAttribute('onclick')?.includes(eventName)
+        btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(eventName)
         );
         if (!button) return;
 
@@ -255,14 +266,47 @@ return view.extend({
         o = s.option(form.DummyValue, '_controls', _('Service Controls'));
         o.rawhtml = true;
         o.cfgvalue = () => `
-            <div style="display:flex;justify-content:center;gap:8px;">
-                <button type="button" class="cbi-button cbi-button-action" onclick="window.dispatchEvent(new CustomEvent('nikki-reload-clicked'))">RELOAD SERVICE</button>
-                <button type="button" class="cbi-button cbi-button-negative" onclick="window.dispatchEvent(new CustomEvent('nikki-restart-clicked'))">RESTART SERVICE</button>
-                <button type="button" class="cbi-button cbi-button-positive" onclick="window.dispatchEvent(new CustomEvent('nikki-update_dashboard-clicked'))">UPDATE DASHBOARD</button>
-                <button type="button" class="cbi-button" onclick="window.dispatchEvent(new CustomEvent('nikki-open_dashboard-clicked'))">OPEN DASHBOARD</button>
+            <style>
+                .nikki-controls {
+                    display: flex;
+                    justify-content: center;
+                    gap: 8px;
+                    flex-wrap: wrap; /* tombol bisa turun ke baris baru */
+                }
+                .nikki-controls button {
+                    min-width: 140px; /* biar enak diklik */
+                    padding: 10px 14px;
+                    font-size: 14px;
+                }
+                @media (max-width: 500px) {
+                    .nikki-controls {
+                        flex-direction: column; /* di HP ditumpuk */
+                        align-items: stretch;
+                    }
+                    .nikki-controls button {
+                        width: 100%;
+                    }
+                }
+            </style>
+            <div class="nikki-controls">
+                <button type="button" class="cbi-button cbi-button-action"
+                    onclick="window.dispatchEvent(new CustomEvent('nikki-reload-clicked'))">
+                    RELOAD SERVICE
+                </button>
+                <button type="button" class="cbi-button cbi-button-negative"
+                    onclick="window.dispatchEvent(new CustomEvent('nikki-restart-clicked'))">
+                    RESTART SERVICE
+                </button>
+                <button type="button" class="cbi-button cbi-button-positive"
+                    onclick="window.dispatchEvent(new CustomEvent('nikki-update_dashboard-clicked'))">
+                    UPDATE DASHBOARD
+                </button>
+                <button type="button" class="cbi-button"
+                    onclick="window.dispatchEvent(new CustomEvent('nikki-open_dashboard-clicked'))">
+                    OPEN DASHBOARD
+                </button>
             </div>
         `;
-
         setTimeout(() => {
             const container = () => document.getElementById('nikki-status-container');
 

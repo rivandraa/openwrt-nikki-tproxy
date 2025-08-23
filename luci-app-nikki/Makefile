@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=v1.23.3-Mod
+PKG_VERSION:=v1.24.0-Mod
 PKG_RELEASE:=1
 
 LUCI_TITLE:=LuCI Support for Nikki TProxy

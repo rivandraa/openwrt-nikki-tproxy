@@ -1,4 +1,4 @@
-name: Sync from Upstream Modifikasi
+name: Sync from Upstream + hapus file
 
 on:
   workflow_dispatch:
@@ -52,13 +52,14 @@ jobs:
             echo "no_new_commit=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: List changed files from upstream
+      - name: List changed files from upstream (with status)
         if: steps.check_new_commit.outputs.no_new_commit == 'false'
         id: changed_files
         run: |
-          git diff --name-only ${{ steps.get_last_commit.outputs.last_commit }} ${{ steps.get_latest_commit.outputs.latest_commit }} \
-            | grep -E '^(luci-app-nikki|nikki)/' > changed_files.txt || true
-          cat changed_files.txt
+          git diff --name-status ${{ steps.get_last_commit.outputs.last_commit }} ${{ steps.get_latest_commit.outputs.latest_commit }} \
+            | grep -E '^(A|M|D)\s+(luci-app-nikki|nikki)/' > changed_status.txt || true
+          cat changed_status.txt
+          awk '{print $2}' changed_status.txt > changed_files.txt
           echo "changed=$(paste -sd ',' changed_files.txt)" >> $GITHUB_OUTPUT
 
       - name: Clone upstream repo for file copy
@@ -66,17 +67,26 @@ jobs:
         run: |
           git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
 
-      - name: Merge and show conflict markers in changed files
+      - name: Merge and sync files
         if: steps.check_new_commit.outputs.no_new_commit == 'false'
         run: |
           HAS_CONFLICTS="false"
-          for file in $(cat changed_files.txt); do
-            echo "🔄 Merging file: $file"
-
+          while read status file; do
+            echo "🔄 Processing $status $file"
             LOCAL="$file"
             REMOTE="upstream-source/$file"
             BASE=".git/tmp-base-$file"
 
+            # --- Jika file dihapus upstream ---
+            if [ "$status" = "D" ]; then
+              if [ -f "$LOCAL" ]; then
+                git rm -f "$LOCAL"
+                echo "❌ File dihapus (ikut upstream): $file"
+              fi
+              continue
+            fi
+
+            # --- Kalau file ada di upstream (A atau M) ---
             mkdir -p "$(dirname "$BASE")"
             mkdir -p "$(dirname "$LOCAL")"
 
@@ -102,7 +112,7 @@ jobs:
             else
               echo "⚠️ File remote tidak ditemukan: $REMOTE"
             fi
-          done
+          done < changed_status.txt
           echo "has_conflicts=$HAS_CONFLICTS" >> $GITHUB_OUTPUT
 
       - name: Update .last-upstream-commit
@@ -114,22 +124,21 @@ jobs:
         if: steps.check_new_commit.outputs.no_new_commit == 'false'
         id: commit_check
         run: |
-          # Hanya add file dari upstream dan marker commit
           git add .last-upstream-commit
-          git add $(cat changed_files.txt) || true
+          if [ -s changed_files.txt ]; then
+            git add $(cat changed_files.txt) || true
+          fi
 
           if ! git diff --cached --quiet; then
-            if [ "${{ steps.changed_files.outputs.changed }}" != "" ]; then
-              if grep -r -q '<<<<<<< LOCAL' luci-app-nikki nikki; then
-                MSG="⚠️ Sync from upstream (ada konflik): ${{ steps.get_latest_commit.outputs.latest_commit }}"
-              else
-                MSG="Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
-              fi
-              echo "changes_detected=true" >> $GITHUB_OUTPUT
-              git commit -m "$MSG"
-              git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
-              git push origin mainrelease
+            if grep -r -q '<<<<<<< LOCAL' luci-app-nikki nikki; then
+              MSG="⚠️ Sync from upstream (ada konflik): ${{ steps.get_latest_commit.outputs.latest_commit }}"
+            else
+              MSG="Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
             fi
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            git commit -m "$MSG"
+            git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
+            git push origin main
           else
             echo "No changes to commit"
             echo "changes_detected=false" >> $GITHUB_OUTPUT
@@ -139,7 +148,7 @@ jobs:
         if: always()
         run: |
           REPO_URL="https://github.com/${{ github.repository }}"
-          BRANCH="mainrelease"
+          BRANCH="main"
           FILES=$(git diff-tree --no-commit-id --name-status -r HEAD | grep -E '^(A|M|D)\s+(luci-app-nikki|nikki)/' || true)
 
           if [ -n "$FILES" ]; then
