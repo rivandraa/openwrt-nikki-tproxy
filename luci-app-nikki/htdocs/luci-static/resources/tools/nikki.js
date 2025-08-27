@@ -111,33 +111,8 @@ return baseclass.extend({
         return callNikkiUpdateSubscription(section_id);
     },
 
-<<<<<<< LOCAL
-    api: async function (method, path, query, body) {
-        const profile = await callNikkiProfile({
-            'external-controller': null,
-            'secret': null
-        });   
-
-        const apiSecret = profile['secret'] || '';
-    
-        if (!apiListen) {
-            console.error("Failed to call API: 'external-controller' not found in the configuration.");
-            return;
-        }
-    
-        const apiPort = apiListen.substring(apiListen.lastIndexOf(':') + 1);
-        const url = `http://${window.location.hostname}:${apiPort}${path}`;
-    
-        return request.request(url, {
-            method: method,
-            headers: { 'Authorization': `Bearer ${apiSecret}` },
-            query: query,
-            content: body
-        });
-=======
     updateDashboard: function () {
         return callNikkiAPI('POST', '/upgrade/ui');
->>>>>>> UPSTREAM
     },
 
     openDashboard: async function () {
