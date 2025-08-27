@@ -39,6 +39,13 @@ const callNikkiUpdateSubscription = rpc.declare({
     expect: { '': {} }
 });
 
+const callNikkiAPI = rpc.declare({
+    object: 'luci.nikki',
+    method: 'api',
+    params: ['method', 'path', 'query', 'body'],
+    expect: { '': {} }
+});
+
 const callNikkiGetIdentifiers = rpc.declare({
     object: 'luci.nikki',
     method: 'get_identifiers',
@@ -104,6 +111,7 @@ return baseclass.extend({
         return callNikkiUpdateSubscription(section_id);
     },
 
+<<<<<<< LOCAL
     api: async function (method, path, query, body) {
         const profile = await callNikkiProfile({
             'external-controller': null,
@@ -126,6 +134,10 @@ return baseclass.extend({
             query: query,
             content: body
         });
+=======
+    updateDashboard: function () {
+        return callNikkiAPI('POST', '/upgrade/ui');
+>>>>>>> UPSTREAM
     },
 
     openDashboard: async function () {
@@ -161,10 +173,6 @@ return baseclass.extend({
         setTimeout(function () {
             window.open(url, '_blank');
         }, 0);
-    },
-
-    updateDashboard: function () {
-        return this.api('POST', '/upgrade/ui');
     },
 
     getIdentifiers: function () {
