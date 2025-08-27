@@ -1,24 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nikki
-<<<<<<< LOCAL
-PKG_RELEASE:=2
-=======
-PKG_VERSION:=2025.08.27
 PKG_RELEASE:=1
->>>>>>> UPSTREAM
 
 PKG_SOURCE_PROTO:=git
-<<<<<<< LOCAL
 PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git #https://github.com/vernesong/mihomo.git
 PKG_SOURCE_DATE:=2025-07-27
 PKG_SOURCE_VERSION:=5f1f296213550c34fb098e07e82e8463f6833e95
 PKG_MIRROR_HASH:=c0c4fcd1ed2e84233c947b9a64b0a5d2afe612276285fe5bfd3773d42bf378ac
-=======
-PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git
-PKG_SOURCE_VERSION:=v1.19.13
-PKG_MIRROR_HASH:=94fdba59d158a4ac28358ab87d6152fe581ed3fbff71ad56b4a2aba462a485d6
->>>>>>> UPSTREAM
 
 PKG_LICENSE:=GPL3.0+
 PKG_MAINTAINER:=***
