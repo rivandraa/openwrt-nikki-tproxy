@@ -1,4 +1,4 @@
-name: release-nikki-fix
+name: release nikki fix core mihomo
 
 on:
   workflow_dispatch:
@@ -129,7 +129,8 @@ jobs:
           🆎 luci-app-nikki: <code>$VER_LUCI</code>
           🧩 nikki: <code>$VER_NIKKI</code>
           📦 Arch: <code>$ARCH</code>
-          🌿 Branch: <code>${{ matrix.branch }}</code>"
+          🌿 Branch: <code>${{ matrix.branch }}</code>
+          🚀 Core: Mihomo"
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
