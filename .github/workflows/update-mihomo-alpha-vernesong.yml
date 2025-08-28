@@ -1,4 +1,4 @@
-name: Generate Mihomo SmartGroup update
+name: update Mihomo SmartGroup vernesong
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       release_type:
         description: "Jenis rilis"
         required: true
-        default: "latest"
+        default: "prerelease"
         type: choice
         options:
           - latest
