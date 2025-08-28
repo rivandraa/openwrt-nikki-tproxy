@@ -63,7 +63,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "HASH=$HASH" >> $GITHUB_ENV
 
-      - name: Cek dan edit Makefile
+      - name: Cek dan edit Makefile (vernesong)
         run: |
           MAKEFILE=nikki/Makefile  # Ganti jika lokasi berbeda
           echo "--- CEK FILE ---"
@@ -78,6 +78,13 @@ jobs:
 
           # Jika sebelumnya pakai format Prerelease
           sed -i 's/^PKG_BUILD_VERSION:=Prerelease-\(Alpha-[a-z0-9]*\)/PKG_BUILD_VERSION:=\1/' "$MAKEFILE"
+
+          # Set URL ke vernesong
+          if grep -q '^PKG_SOURCE_URL:=' "$MAKEFILE"; then
+            sed -i "s|^PKG_SOURCE_URL:=.*|PKG_SOURCE_URL:=https://github.com/vernesong/mihomo.git|" "$MAKEFILE"
+          else
+            echo 'PKG_SOURCE_URL:=https://github.com/vernesong/mihomo.git' >> "$MAKEFILE"
+          fi
 
           echo "--- ISI SETELAH EDIT ---"
           cat "$MAKEFILE"
