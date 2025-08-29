@@ -86,13 +86,6 @@ jobs:
             echo 'PKG_SOURCE_URL:=https://github.com/vernesong/mihomo.git' >> "$MAKEFILE"
           fi
 
-          # GO_PKG → vernesong
-          if grep -q '^GO_PKG:=' "$MAKEFILE"; then
-            sed -i "s|^GO_PKG:=.*|GO_PKG:=github.com/vernesong/mihomo|" "$MAKEFILE"
-          else
-            echo 'GO_PKG:=github.com/vernesong/mihomo' >> "$MAKEFILE"
-          fi
-
           echo "--- ISI SETELAH EDIT ---"
           cat "$MAKEFILE"
 
