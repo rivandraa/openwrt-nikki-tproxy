@@ -50,35 +50,34 @@ jobs:
           echo "version_luci=$VERSION_LUCI" >> $GITHUB_OUTPUT
           echo "version_nikki=$VERSION_NIKKI" >> $GITHUB_OUTPUT
 
-      - name: Create release metadata
+      - name: Set release metadata
         id: release_meta
         run: |
-          set -e
-          
-          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # v1.24.0
-          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # 2025-08-25~Nikki_Alpha-3cb3b4ee-Mod-r2
+          echo "=== Ekstrak versi dari Makefile ==="
+          VER_LUCI_RAW=$(grep -E '^PKG_VERSION:=' luci-app-nikki/Makefile | cut -d '=' -f2 | xargs)
+          VER_NIKKI_RAW=$(grep -E '^PKG_VERSION:=' nikki/Makefile | cut -d '=' -f2 | xargs)
           ARCH="${{ matrix.arch }}"
-          BRANCH="${{ matrix.branch }}"
 
-          echo "🧪 Input:"
-          echo "VER_LUCI_RAW = $VER_LUCI_RAW"
-          echo "VER_NIKKI_RAW = $VER_NIKKI_RAW"
+          echo "VER_LUCI_RAW=$VER_LUCI_RAW"
+          echo "VER_NIKKI_RAW=$VER_NIKKI_RAW"
+          echo "ARCH=$ARCH"
 
-          VER_LUCI_BASE=$(echo "$VER_LUCI_RAW" | sed 's/-.*//')  # v1.24.0
+          # Versi luci tanpa modifikasi (tetap bawa -r atau -1 kalau ada)
+          VER_LUCI_CLEAN=$(echo "$VER_LUCI_RAW" | sed -E 's/[^0-9A-Za-z._-]//g')
 
-          # Ambil versi nikki setelah tanggal
+          # Versi nikki tetap dibersihkan
           VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
 
+          # Tag & hashtag
           TAG_NAME="Nikki-TProxy-$VER_LUCI_RAW"
           HASH_TAG="Nikki_TProxy_$(echo "$VER_LUCI_RAW" | sed 's/\./_/g; s/-/_/g')"
 
           # Nama zip full
-          ZIP_NAME="Nikki_TProxy_${VER_LUCI_BASE}_Nikki_${VER_NIKKI_CLEAN}_${ARCH}"
+          ZIP_NAME="Nikki_TProxy_${VER_LUCI_CLEAN}_Nikki_${VER_NIKKI_CLEAN}_${ARCH}"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
-          echo "relname=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "hashtag=$HASH_TAG" >> $GITHUB_OUTPUT
+          echo "zipname=$ZIP_NAME" >> $GITHUB_OUTPUT
 
           echo ""
           echo "✅ Generated:"
@@ -140,12 +139,11 @@ jobs:
 
           rm -f "$SHORT_NAME"
 
-      - name: Upload ZIP to GitHub Release (rivandraa/nikki_tproxy)
+      - name: Create GitHub Release (rivandraa/nikki_tproxy) WITHOUT file
         uses: softprops/action-gh-release@v2
         with:
           repository: rivandraa/nikki_tproxy
           tag_name: ${{ steps.release_meta.outputs.tagname }}
           name: "Release ${{ steps.release_meta.outputs.tagname }}"  # Tanpa emoji
-          files: ${{ steps.release_meta.outputs.zipname }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TARGET_REPO_PAT }}
