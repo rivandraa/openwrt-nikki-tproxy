@@ -1,4 +1,4 @@
-name: release nikki fix core Mihomo Alpha with Smart Group
+name: release nikki fix core Smart Group
 
 on:
   workflow_dispatch:
