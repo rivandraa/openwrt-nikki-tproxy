@@ -21,7 +21,7 @@ PKG_BUILD_TIME:=$(shell date -u -Iseconds)
 PKG_VERSION:=$(PKG_SOURCE_DATE)~$(PKG_BUILD_VERSION)-Mod
 #PKG_VERSION:=$(PKG_BUILD_VERSION)-Mod
 
-GO_PKG:=github.com/vernesong/mihomo
+GO_PKG:=github.com/metacubex/mihomo
 GO_PKG_LDFLAGS_X:= \
 	$(GO_PKG)/constant.Version=$(PKG_BUILD_VERSION) \
 	$(GO_PKG)/constant.BuildTime=$(PKG_BUILD_TIME)
