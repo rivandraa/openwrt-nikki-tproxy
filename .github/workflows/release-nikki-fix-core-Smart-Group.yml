@@ -55,8 +55,8 @@ jobs:
         run: |
           set -e
           
-          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     # contoh: v1.24.1-1 atau v1.24.0-r2
-          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   # contoh: 2025-08-25~v1.19.13-Mod-r1 atau 2025-08-25~Nikki_Alpha-3cb3b4ee-Mod-r2
+          VER_LUCI_RAW="${{ steps.extract_version.outputs.version_luci }}"     
+          VER_NIKKI_RAW="${{ steps.extract_version.outputs.version_nikki }}"   
           ARCH="${{ matrix.arch }}"
           BRANCH="${{ matrix.branch }}"
 
@@ -64,13 +64,13 @@ jobs:
           echo "VER_LUCI_RAW = $VER_LUCI_RAW"
           echo "VER_NIKKI_RAW = $VER_NIKKI_RAW"
 
-          # Bersihkan tanggal di depan versi nikki
+          # Bersihkan tanggal di depan versi nikki (biarkan sisanya apa adanya)
           VER_NIKKI_CLEAN=$(echo "$VER_NIKKI_RAW" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
 
           TAG_NAME="Nikki-TProxy-$VER_LUCI_RAW"
           HASH_TAG="Nikki_TProxy_$(echo "$VER_LUCI_RAW" | sed 's/\./_/g; s/-/_/g')"
 
-          # Nama zip full (pakai versi mentah luci + versi nikki yang sudah dibersihkan)
+          # Nama zip full → langsung gabungkan versi luci raw + nikki clean
           ZIP_NAME="Nikki_TProxy_${VER_LUCI_RAW}_Nikki_${VER_NIKKI_CLEAN}_${ARCH}"
 
           echo "tagname=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -111,16 +111,7 @@ jobs:
           VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
           ARCH="${{ matrix.arch }}"
 
-          # Versi pendek tetap bawa detail penuh
-          SHORT_LUCI=$(echo "$VER_LUCI" | sed -E 's/[^0-9]+/_/g')
-          SHORT_NIKKI=$(echo "$VER_NIKKI" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//; s/[^A-Za-z0-9]+/_/g')
-
-          SHORT_NAME="Nikki_TProxy_${SHORT_LUCI}_Nikki_${SHORT_NIKKI}_${ARCH}.zip"
-
-          echo "📦 Asli: $ORIGINAL_FILE"
-          echo "📦 Pendek: $SHORT_NAME"
-
-          cp "$ORIGINAL_FILE" "$SHORT_NAME"
+          echo "📦 File: $ORIGINAL_FILE"
 
           CAPTION="🎉 <b>Release</b> #${{ steps.release_meta.outputs.hashtag }}
           
@@ -132,11 +123,9 @@ jobs:
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F document=@"$SHORT_NAME" \
+            -F document=@"$ORIGINAL_FILE" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
-
-          rm -f "$SHORT_NAME"
 
       - name: Create GitHub Release (rivandraa/nikki_tproxy) WITHOUT file
         uses: softprops/action-gh-release@v2
