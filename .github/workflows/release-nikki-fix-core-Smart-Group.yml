@@ -105,14 +105,18 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -e
-
+      
           ORIGINAL_FILE="${{ steps.release_meta.outputs.zipname }}.zip"
           VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
           VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
           ARCH="${{ matrix.arch }}"
-
-          echo "📦 File: $ORIGINAL_FILE"
-
+      
+          # Bentuk nama ZIP sesuai format target
+          ZIP_NAME="Nikki_TProxy_${VER_LUCI}_Nikki_${VER_NIKKI}_${ARCH}.zip"
+      
+          echo "📦 Asli: $ORIGINAL_FILE"
+          echo "📦 Rename saat upload: $ZIP_NAME"
+      
           CAPTION="🎉 <b>Release</b> #${{ steps.release_meta.outputs.hashtag }}
           
           🆎 luci-app-nikki : <code>$VER_LUCI</code>
@@ -120,10 +124,10 @@ jobs:
           📦 Arch : <code>$ARCH</code>
           🌿 Branch : <code>${{ matrix.branch }}</code>
           🚀 Core : Mihomo Alpha with Smart Group"
-
+      
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F document=@"$ORIGINAL_FILE" \
+            -F document=@"$ORIGINAL_FILE";filename="$ZIP_NAME" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
 
