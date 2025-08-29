@@ -127,7 +127,7 @@ jobs:
       
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F document=@"$ORIGINAL_FILE";filename="$ZIP_NAME" \
+            -F "document=@${ORIGINAL_FILE};filename=${ORIGINAL_FILE}" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
 
