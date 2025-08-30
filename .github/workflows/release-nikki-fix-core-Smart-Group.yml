@@ -110,9 +110,15 @@ jobs:
           VER_LUCI="${{ steps.extract_version.outputs.version_luci }}"
           VER_NIKKI="${{ steps.extract_version.outputs.version_nikki }}"
           ARCH="${{ matrix.arch }}"
-      
-          # Bentuk nama ZIP sesuai format target
-          ZIP_NAME="Nikki_TProxy_${VER_LUCI}_Nikki_${VER_NIKKI}_${ARCH}.zip"
+
+          # Bersihkan tanggal di depan versi nikki (biarkan sisanya apa adanya)
+          VER_NIKKI_CL=$(echo "$VER_LUCI" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}~//')
+
+          TAG_NAME="Nikki-TProxy-$VER_LUCI_RAW"
+          HASH_TAG="Nikki_TProxy_$(echo "$VER_LUCI_RAW" | sed 's/\./_/g; s/-/_/g')"
+
+          # Nama zip full → langsung gabungkan versi luci raw + nikki clean
+          ZIP_NAME="Nikki_TProxy_${VER_LUCI}_Nikki_${VER_NIKKI_CL}_${ARCH}"
       
           echo "📦 Asli: $ORIGINAL_FILE"
           echo "📦 Rename saat upload: $ZIP_NAME"
@@ -127,9 +133,11 @@ jobs:
       
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@${ORIGINAL_FILE};filename=${ORIGINAL_FILE}" \
+            -F "document=@${ORIGINAL_FILE};filename=${ZIP_NAME}" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
+            
+            rm -f "$ZIP_NAME"
 
       - name: Create GitHub Release (rivandraa/nikki_tproxy) WITHOUT file
         uses: softprops/action-gh-release@v2
