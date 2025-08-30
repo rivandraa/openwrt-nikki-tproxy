@@ -1,4 +1,4 @@
-name: Sync from Upstream Modifikasi
+name: Sync from Upstream
 
 on:
   workflow_dispatch:
