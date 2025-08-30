@@ -264,19 +264,10 @@ return view.extend({
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
 
-<<<<<<< LOCAL
         o = s.taboption('tun', form.Value, 'udp_timeout', _('UDP Timeout'));
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified (Default 300)');
 
-        o = s.taboption('tun', form.ListValue, 'tun_endpoint_independent_nat', _('Endpoint Independent NAT'));
-        o.optional = true;
-        o.placeholder = _('Unmodified');
-        o.value('0', _('Disable'));
-        o.value('1', _('Enable'));
-
-=======
->>>>>>> UPSTREAM
         o = s.taboption('tun', form.Flag, 'tun_dns_hijack', _('Overwrite DNS Hijack'));
         o.rmempty = false;
 
