@@ -1,4 +1,4 @@
-name: update Mihomo SmartGroup vernesong
+name: Generate Core Mihomo SmartGroup vernesong
 
 on:
   workflow_dispatch:
