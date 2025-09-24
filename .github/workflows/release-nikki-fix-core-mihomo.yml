@@ -84,6 +84,13 @@ jobs:
           echo "📦 ZIP_NAME = $ZIP_NAME.zip"
           echo "🏷️ HASH_TAG = #$HASH_TAG"
 
+      - name: Debug outputs
+        run: |
+          echo "TAG_NAME  = ${{ steps.release_meta.outputs.tagname }}"
+          echo "ZIP_NAME  = ${{ steps.release_meta.outputs.zipname }}"
+          echo "REL_NAME  = ${{ steps.release_meta.outputs.relname }}"
+          echo "HASH_TAG  = ${{ steps.release_meta.outputs.hashtag }}"
+
       - name: Compress .ipk files to ZIP
         run: |
           mkdir -p output
