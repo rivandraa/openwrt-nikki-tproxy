@@ -28,7 +28,7 @@ jobs:
 
           # Tentukan nama file aman untuk Telegram
           FILENAME="$(basename "$ORIGINAL_FILE")"
-          MAX_LEN=64
+          MAX_LEN=63
           if [ ${#FILENAME} -gt $MAX_LEN ]; then
             EXT="${FILENAME##*.}"
             NAME="${FILENAME%.*}"
