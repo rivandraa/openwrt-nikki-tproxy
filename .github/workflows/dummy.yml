@@ -26,8 +26,22 @@ jobs:
           
           File: <code>$ORIGINAL_FILE</code>"
 
+          # Tentukan nama file aman untuk Telegram
+          FILENAME="$(basename "$ORIGINAL_FILE")"
+          MAX_LEN=60
+          if [ ${#FILENAME} -gt $MAX_LEN ]; then
+            EXT="${FILENAME##*.}"
+            NAME="${FILENAME%.*}"
+            SAFE_NAME="${NAME:0:$MAX_LEN}.${EXT}"
+          else
+            SAFE_NAME="$FILENAME"
+          fi
+
+          echo "📂 Filename dikirim: $SAFE_NAME"
+
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@${ORIGINAL_FILE};filename=$(basename "$ORIGINAL_FILE")" \
+            -F "document=@${ORIGINAL_FILE};filename=${SAFE_NAME}" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
+
