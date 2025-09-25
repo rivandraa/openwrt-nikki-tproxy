@@ -1,39 +1,42 @@
-name: Test Upload Telegram
-
-on:
-  workflow_dispatch:
-
-jobs:
-  test-upload:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Buat dummy ZIP
-        run: |
-          mkdir out
-          echo "Hello Telegram" > out/hello.txt
-          zip -j "out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip" out/hello.txt
-
-      - name: Upload ZIP ke Telegram
+      - name: Upload ZIP ke Telegram (MarkdownV2)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -e
           ORIGINAL_FILE="out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip"
+          VER_LUCI="v1.24.2-Mod-r1"
+          VER_NIKKI="v1.19.13-Mod-r2"
+          ARCH="aarch64_generic"
+          BRANCH="openwrt-24.10"
 
           echo "📦 Asli: $ORIGINAL_FILE"
 
-          CAPTION="🎉 <b>Release</b> (Test Fix)
-          
-          File: <code>$(basename "$ORIGINAL_FILE")</code>"
+          # fungsi escape karakter spesial Telegram MarkdownV2
+          escape_md() {
+            echo "$1" | sed -E 's/([_*\[\]()~`>#+\-=|{}.!])/\\\1/g'
+          }
 
-          # Tentukan nama file aman (<60 char) biar Telegram tidak truncate
+          VER_LUCI_ESC=$(escape_md "$VER_LUCI")
+          VER_NIKKI_ESC=$(escape_md "$VER_NIKKI")
+          ARCH_ESC=$(escape_md "$ARCH")
+          BRANCH_ESC=$(escape_md "$BRANCH")
+          FILE_ESC=$(escape_md "$(basename "$ORIGINAL_FILE")")
+
+          CAPTION="🎉 *Release*\n\n\
+🆎 luci-app-nikki : \`${VER_LUCI_ESC}\`\n\
+🧩 nikki : \`${VER_NIKKI_ESC}\`\n\
+📦 Arch : \`${ARCH_ESC}\`\n\
+🌿 Branch : \`${BRANCH_ESC}\`\n\
+🚀 File : \`${FILE_ESC}\`"
+
+          # Tentukan nama file aman (<60 char)
           FILENAME="$(basename "$ORIGINAL_FILE")"
-          MAX_LEN=60
+          MAX_LEN=64
           if [ ${#FILENAME} -gt $MAX_LEN ]; then
-            EXT="${FILENAME##*.}"            # ambil extension (zip)
-            NAME="${FILENAME%.*}"           # nama tanpa extension
-            SAFE_NAME="${NAME:0:$((MAX_LEN-5))}.${EXT}"  # jaga .zip tetap ada
+            EXT="${FILENAME##*.}"
+            NAME="${FILENAME%.*}"
+            SAFE_NAME="${NAME:0:$((MAX_LEN-5))}.${EXT}"
           else
             SAFE_NAME="$FILENAME"
           fi
@@ -44,5 +47,4 @@ jobs:
             -F chat_id="${TELEGRAM_CHAT_ID}" \
             -F "document=@${ORIGINAL_FILE};filename=${SAFE_NAME}" \
             -F caption="$CAPTION" \
-            -F parse_mode="HTML"
-
+            -F parse_mode="MarkdownV2"
