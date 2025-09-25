@@ -10,7 +10,7 @@ jobs:
       - name: Buat dummy file zip
         run: |
           echo "dummy content" > dummy.txt
-          zip Dummy_Test_v1.2.3-Test_v1.4.5-Check_x86_64.zip dummy.txt
+          zip Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip dummy.txt
 
       - name: Upload dummy ZIP ke Telegram
         env:
@@ -18,7 +18,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -e
-          ORIGINAL_FILE="Dummy_Test_v1.2.3-Test_v1.4.5-Check_x86_64.zip"
+          ORIGINAL_FILE="Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip"
 
           echo "📦 Asli: $ORIGINAL_FILE"
 
