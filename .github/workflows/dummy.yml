@@ -13,7 +13,7 @@ jobs:
           echo "Hello Telegram" > out/hello.txt
           zip -j "out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip" out/hello.txt
 
-      - name: Upload dummy ZIP ke Telegram
+      - name: Upload ZIP ke Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -23,13 +23,26 @@ jobs:
 
           echo "📦 Asli: $ORIGINAL_FILE"
 
-          CAPTION="🧪 <b>Testing Upload</b>
-
+          CAPTION="🎉 <b>Release</b> (Test Fix)
+          
           File: <code>$(basename "$ORIGINAL_FILE")</code>"
 
-          # Pakai nama asli persis
+          # Tentukan nama file aman (<60 char) biar Telegram tidak truncate
+          FILENAME="$(basename "$ORIGINAL_FILE")"
+          MAX_LEN=60
+          if [ ${#FILENAME} -gt $MAX_LEN ]; then
+            EXT="${FILENAME##*.}"            # ambil extension (zip)
+            NAME="${FILENAME%.*}"           # nama tanpa extension
+            SAFE_NAME="${NAME:0:$((MAX_LEN-5))}.${EXT}"  # jaga .zip tetap ada
+          else
+            SAFE_NAME="$FILENAME"
+          fi
+
+          echo "📂 Nama upload: $SAFE_NAME"
+
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@${ORIGINAL_FILE};filename=$(basename "$ORIGINAL_FILE")" \
+            -F "document=@${ORIGINAL_FILE};filename=${SAFE_NAME}" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
+
