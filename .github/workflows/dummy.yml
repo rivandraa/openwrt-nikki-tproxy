@@ -1,20 +1,46 @@
+name: release nikki fixed core Mihomo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Upload
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Buat dummy ZIP
+        run: |
+          mkdir -p out
+          echo "Dummy data" > out/dummy.txt
+          zip -j "out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip" out/dummy.txt
+
       - name: Upload ZIP ke Telegram (MarkdownV2)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -e
+
+          # ----- konfigurasi (ganti sesuai kebutuhan) -----
           ORIGINAL_FILE="out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip"
           VER_LUCI="v1.24.2-Mod-r1"
           VER_NIKKI="v1.19.13-Mod-r2"
           ARCH="aarch64_generic"
           BRANCH="openwrt-24.10"
+          # ------------------------------------------------
 
           echo "📦 Asli: $ORIGINAL_FILE"
 
-          # fungsi escape karakter spesial Telegram MarkdownV2
+          # fungsi escape untuk Telegram MarkdownV2
           escape_md() {
-            echo "$1" | sed -E 's/([_*\[\]()~`>#+\-=|{}.!])/\\\1/g'
+            printf '%s' "$1" | sed -E 's/([_*\[\]()~`>#+\-=|{}.!])/\\\1/g'
           }
 
           VER_LUCI_ESC=$(escape_md "$VER_LUCI")
@@ -23,20 +49,17 @@
           BRANCH_ESC=$(escape_md "$BRANCH")
           FILE_ESC=$(escape_md "$(basename "$ORIGINAL_FILE")")
 
-          CAPTION="🎉 *Release*\n\n\
-🆎 luci-app-nikki : \`${VER_LUCI_ESC}\`\n\
-🧩 nikki : \`${VER_NIKKI_ESC}\`\n\
-📦 Arch : \`${ARCH_ESC}\`\n\
-🌿 Branch : \`${BRANCH_ESC}\`\n\
-🚀 File : \`${FILE_ESC}\`"
+          # buat caption dengan format aman
+          CAPTION=$(printf '🎉 *Release*\n\n🆎 luci-app-nikki : `%s`\n🧩 nikki : `%s`\n📦 Arch : `%s`\n🌿 Branch : `%s`\n🚀 File : `%s`' \
+            "$VER_LUCI_ESC" "$VER_NIKKI_ESC" "$ARCH_ESC" "$BRANCH_ESC" "$FILE_ESC")
 
-          # Tentukan nama file aman (<60 char)
+          # pastikan nama file tidak kepanjangan
           FILENAME="$(basename "$ORIGINAL_FILE")"
           MAX_LEN=64
           if [ ${#FILENAME} -gt $MAX_LEN ]; then
             EXT="${FILENAME##*.}"
             NAME="${FILENAME%.*}"
-            SAFE_NAME="${NAME:0:$((MAX_LEN-5))}.${EXT}"
+            SAFE_NAME="${NAME:0:$((MAX_LEN - 1 - ${#EXT}))}.${EXT}"
           else
             SAFE_NAME="$FILENAME"
           fi
