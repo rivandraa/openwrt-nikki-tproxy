@@ -1,16 +1,17 @@
-name: telegram test upload
+name: Test Upload Telegram
 
 on:
   workflow_dispatch:
 
 jobs:
-  telegram-test:
+  test-upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Buat dummy file zip
+      - name: Buat dummy ZIP
         run: |
-          echo "dummy content" > dummy.txt
-          zip Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip dummy.txt
+          mkdir out
+          echo "Hello Telegram" > out/hello.txt
+          zip -j "out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip" out/hello.txt
 
       - name: Upload dummy ZIP ke Telegram
         env:
@@ -18,30 +19,17 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -e
-          ORIGINAL_FILE="Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip"
+          ORIGINAL_FILE="out/Nikki_TProxy_v1.24.2-Mod-r1_Nikki_v1.19.13-Mod-r2_aarch64_generic.zip"
 
           echo "📦 Asli: $ORIGINAL_FILE"
 
           CAPTION="🧪 <b>Testing Upload</b>
-          
-          File: <code>$ORIGINAL_FILE</code>"
 
-          # Tentukan nama file aman untuk Telegram
-          FILENAME="$(basename "$ORIGINAL_FILE")"
-          MAX_LEN=62
-          if [ ${#FILENAME} -gt $MAX_LEN ]; then
-            EXT="${FILENAME##*.}"
-            NAME="${FILENAME%.*}"
-            SAFE_NAME="${NAME:0:$MAX_LEN}.${EXT}"
-          else
-            SAFE_NAME="$FILENAME"
-          fi
+          File: <code>$(basename "$ORIGINAL_FILE")</code>"
 
-          echo "📂 Filename dikirim: $SAFE_NAME"
-
+          # Pakai nama asli persis
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F "document=@${ORIGINAL_FILE};filename=${SAFE_NAME}" \
+            -F "document=@${ORIGINAL_FILE};filename=$(basename "$ORIGINAL_FILE")" \
             -F caption="$CAPTION" \
             -F parse_mode="HTML"
-
