@@ -1,0 +1,28 @@
+jobs:
+  telegram-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Buat dummy file zip
+        run: |
+          echo "dummy content" > dummy.txt
+          zip Dummy_Test_v1.2.3-Test_v1.4.5-Check_x86_64.zip dummy.txt
+
+      - name: Upload dummy ZIP ke Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -e
+          ORIGINAL_FILE="Dummy_Test_v1.2.3-Test_v1.4.5-Check_x86_64.zip"
+
+          echo "📦 Asli: $ORIGINAL_FILE"
+
+          CAPTION="🧪 <b>Testing Upload</b>
+          
+          File: <code>$ORIGINAL_FILE</code>"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="${TELEGRAM_CHAT_ID}" \
+            -F "document=@${ORIGINAL_FILE};filename=$(basename "$ORIGINAL_FILE")" \
+            -F caption="$CAPTION" \
+            -F parse_mode="HTML"
