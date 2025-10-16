@@ -86,11 +86,6 @@
 	const reserved_ip = uci_array(uci.get('nikki', 'proxy', 'reserved_ip'));
 	const reserved_ip6 = uci_array(uci.get('nikki', 'proxy', 'reserved_ip6'));
 	const bypass_dscp = uci_array(uci.get('nikki', 'proxy', 'bypass_dscp'));
-<<<<<<< LOCAL
-=======
-	const bypass_china_mainland_ip = uci_bool(uci.get('nikki', 'proxy', 'bypass_china_mainland_ip'));
-	const bypass_china_mainland_ip6 = uci_bool(uci.get('nikki', 'proxy', 'bypass_china_mainland_ip6'));
->>>>>>> UPSTREAM
 	const proxy_tcp_dport = split((uci.get('nikki', 'proxy', 'proxy_tcp_dport') ?? '0-65535'), ' ');
 	const proxy_udp_dport = split((uci.get('nikki', 'proxy', 'proxy_udp_dport') ?? '0-65535'), ' ');
 
@@ -544,13 +539,3 @@ table inet nikki {
 	}
 	{% endif %}
 }
-<<<<<<< LOCAL
-=======
-
-{% if (bypass_china_mainland_ip): %}
-include "/etc/nikki/nftables/geoip_cn.nft"
-{% endif %}
-{% if (bypass_china_mainland_ip6): %}
-include "/etc/nikki/nftables/geoip6_cn.nft"
-{% endif %}
->>>>>>> UPSTREAM
