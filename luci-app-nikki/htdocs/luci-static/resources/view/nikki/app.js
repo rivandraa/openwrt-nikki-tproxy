@@ -386,10 +386,9 @@ return view.extend({
         o = s.taboption('general', form.Flag, 'fast_reload', _('Fast Reload'));
         o.rmempty = false;
 
-<<<<<<< LOCAL
         // === ENV SECTION ===
         s = m.section(form.NamedSection, 'env', 'env', _('🛠️ Core Environment Variable Config'));
-=======
+
         s.tab('rlimit', _('RLIMIT Config'));
 
         o = s.taboption('rlimit', form.Value, 'rlimit_address_space_soft', _('Address Space Size Soft Limit'));
@@ -425,7 +424,6 @@ return view.extend({
         o.placeholder = _('Unlimited');
 
         s.tab('environment_variable', _('Environment Variable Config'));
->>>>>>> UPSTREAM
 
         o = s.taboption('environment_variable', form.DynamicList, 'env_safe_paths', _('Safe Paths'));
         o.load = function (section_id) {
