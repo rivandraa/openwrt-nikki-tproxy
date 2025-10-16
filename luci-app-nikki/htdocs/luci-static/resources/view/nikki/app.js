@@ -379,15 +379,12 @@ return view.extend({
         o = s.option(form.Flag, 'core_only', _('Core Only'));
         o.rmempty = false;
 
-        s = m.section(form.NamedSection, 'procd', 'procd', _('procd Config'));
+        s = m.section(form.NamedSection, 'procd', 'procd', _('🛠️ Procd Config'));
 
         s.tab('general', _('General Config'));
 
         o = s.taboption('general', form.Flag, 'fast_reload', _('Fast Reload'));
         o.rmempty = false;
-
-        // === ENV SECTION ===
-        s = m.section(form.NamedSection, 'env', 'env', _('🛠️ Core Environment Variable Config'));
 
         s.tab('rlimit', _('RLIMIT Config'));
 
