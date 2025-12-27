@@ -292,6 +292,7 @@ return view.extend({
 
         s.tab('dns', _('DNS Config'));
 
+<<<<<<< LOCAL
         o = s.taboption('dns', form.ListValue, 'dns_config', _('DNS Status'))
         o.optional = false
         o.default = '1';
@@ -332,6 +333,17 @@ return view.extend({
                 : value;
             m.uci.set('nikki', section_id, 'dns_listen', '0.0.0.0:' + port);
         };
+=======
+        o = s.taboption('dns', form.ListValue, 'dns_cache_algorithm', _('DNS Cache Algorithm'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('lru', _('Least Recently Used (LRU)'));
+        o.value('arc', _('Adaptive Replacement Cache (ARC)'));
+
+        o = s.taboption('dns', form.Value, 'dns_listen', _('DNS Listen'));
+        o.datatype = 'ipaddrport(1)';
+        o.placeholder = _('Unmodified');
+>>>>>>> UPSTREAM
 
         o = s.taboption('dns', form.ListValue, 'dns_ipv6', 'IPv6');
         o.optional = true;
@@ -351,6 +363,10 @@ return view.extend({
 
         o = s.taboption('dns', form.Value, 'fake_ip6_range', _('Fake-IP6 Range'));
         o.datatype = 'cidr6';
+        o.placeholder = _('Unmodified');
+
+        o = s.taboption('dns', form.Value, 'fake_ip_ttl', _('Fake-IP TTL'));
+        o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
 
         o = s.taboption('dns', form.Flag, 'fake_ip_filter', _('Overwrite Fake-IP Filter'));
@@ -379,6 +395,12 @@ return view.extend({
         o.value('1', _('Enable'));
 
         o = s.taboption('dns', form.ListValue, 'dns_doh_prefer_http3', _('DoH Prefer HTTP/3'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('0', _('Disable'));
+        o.value('1', _('Enable'));
+
+        o = s.taboption('dns', form.ListValue, 'dns_direct_nameserver_follow_policy', _('Direct Nameserver Follow Policy'));
         o.optional = true;
         o.placeholder = _('Unmodified');
         o.value('0', _('Disable'));
