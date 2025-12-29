@@ -268,12 +268,6 @@ return view.extend({
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified (Default 300)');
 
-        o = s.taboption('tun', form.ListValue, 'tun_endpoint_independent_nat', _('Endpoint Independent NAT'));
-        o.optional = true;
-        o.placeholder = _('Unmodified');
-        o.value('0', _('Disable'));
-        o.value('1', _('Enable'));
-
         o = s.taboption('tun', form.Flag, 'tun_dns_hijack', _('Overwrite DNS Hijack'));
         o.rmempty = false;
 
@@ -303,6 +297,12 @@ return view.extend({
         o.default = '1';
         o.value('1', _('Enable'))
         o.value('0', _('Disable'))
+
+        o = s.taboption('dns', form.ListValue, 'dns_cache_algorithm', _('DNS Cache Algorithm'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('lru', _('Least Recently Used (LRU)'));
+        o.value('arc', _('Adaptive Replacement Cache (ARC)'));
 
         // Opsi dropdown untuk memilih DNS Listen Port
         var portMode = s.taboption('dns', form.ListValue, 'dns_listen_port_mode', '*' + ' ' + _('DNS Listen Port'));
@@ -355,6 +355,14 @@ return view.extend({
         o.datatype = 'cidr4';
         o.placeholder = _('Unmodified');
 
+        o = s.taboption('dns', form.Value, 'fake_ip6_range', _('Fake-IP6 Range'));
+        o.datatype = 'cidr6';
+        o.placeholder = _('Unmodified');
+
+        o = s.taboption('dns', form.Value, 'fake_ip_ttl', _('Fake-IP TTL'));
+        o.datatype = 'uinteger';
+        o.placeholder = _('Unmodified');
+
         o = s.taboption('dns', form.Flag, 'fake_ip_filter', _('Overwrite Fake-IP Filter'));
         o.rmempty = false;
 
@@ -381,6 +389,12 @@ return view.extend({
         o.value('1', _('Enable'));
 
         o = s.taboption('dns', form.ListValue, 'dns_doh_prefer_http3', _('DoH Prefer HTTP/3'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('0', _('Disable'));
+        o.value('1', _('Enable'));
+
+        o = s.taboption('dns', form.ListValue, 'dns_direct_nameserver_follow_policy', _('Direct Nameserver Follow Policy'));
         o.optional = true;
         o.placeholder = _('Unmodified');
         o.value('0', _('Disable'));
@@ -664,6 +678,7 @@ return view.extend({
         so = o.subsection.option(form.Flag, 'no_resolve', _('No Resolve'));
         so.rmempty = false;
         so.depends('type', /IP-CIDR6?/i);
+        so.depends('type', /IP-ASN/i);
         so.depends('type', /GEOIP/i);
 
         s.tab('geox', _('GeoX Config'));

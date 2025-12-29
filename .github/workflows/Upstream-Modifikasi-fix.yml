@@ -1,10 +1,7 @@
-name: Sync from Upstream
+name: Sync Upstream Modifikasi FIX
 
 on:
   workflow_dispatch:
-#  schedule:
-#    - cron: '0 22 * * *'  # 06:00 WITA
-#    - cron: '0 10 * * *'  # 18:00 WITA
 
 jobs:
   selective-sync:
@@ -43,36 +40,29 @@ jobs:
           LATEST=$(git rev-parse upstream/main)
           echo "latest_commit=$LATEST" >> $GITHUB_OUTPUT
 
-      - name: Check if upstream has new commits
-        id: check_new_commit
+      - name: Determine changed files from upstream
+        id: changed_files
         run: |
-          if [ "${{ steps.get_last_commit.outputs.last_commit }}" = "${{ steps.get_latest_commit.outputs.latest_commit }}" ]; then
+          CHANGED=$(git diff --name-only ${{ steps.get_last_commit.outputs.last_commit }} ${{ steps.get_latest_commit.outputs.latest_commit }} | grep -E '^(luci-app-nikki|nikki)/' || true)
+          echo "$CHANGED" > changed_files.txt
+          if [ -z "$CHANGED" ]; then
             echo "no_new_commit=true" >> $GITHUB_OUTPUT
           else
             echo "no_new_commit=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: List changed files from upstream
-        if: steps.check_new_commit.outputs.no_new_commit == 'false'
-        id: changed_files
-        run: |
-          git diff --name-only ${{ steps.get_last_commit.outputs.last_commit }} ${{ steps.get_latest_commit.outputs.latest_commit }} \
-            | grep -E '^(luci-app-nikki|nikki)/' > changed_files.txt || true
-          cat changed_files.txt
           echo "changed=$(paste -sd ',' changed_files.txt)" >> $GITHUB_OUTPUT
 
       - name: Clone upstream repo for file copy
-        if: steps.check_new_commit.outputs.no_new_commit == 'false'
+        if: steps.changed_files.outputs.no_new_commit == 'false'
         run: |
           git clone --depth=1 --branch=main https://github.com/nikkinikki-org/OpenWrt-nikki.git upstream-source
 
-      - name: Merge and show conflict markers in changed files
-        if: steps.check_new_commit.outputs.no_new_commit == 'false'
+      - name: Merge and handle conflicts
+        if: steps.changed_files.outputs.no_new_commit == 'false'
         run: |
           HAS_CONFLICTS="false"
           for file in $(cat changed_files.txt); do
-            echo "🔄 Merging file: $file"
-
+            echo "🔄 Processing file: $file"
             LOCAL="$file"
             REMOTE="upstream-source/$file"
             BASE=".git/tmp-base-$file"
@@ -85,54 +75,45 @@ jobs:
             if [ -f "$REMOTE" ]; then
               if [ -f "$LOCAL" ]; then
                 if ! git merge-file -p -L LOCAL -L BASE -L UPSTREAM "$LOCAL" "$BASE" "$REMOTE" > "$LOCAL.merged"; then
-                  echo "⚠️ Konflik saat merge: $file"
+                  echo "⚠️ Konflik merge: $file"
                   HAS_CONFLICTS="true"
                 fi
                 if [ -s "$LOCAL.merged" ]; then
                   mv "$LOCAL.merged" "$LOCAL"
                   echo "✅ Merge selesai: $file"
                 else
-                  echo "⚠️ Merge kosong: $file"
                   rm -f "$LOCAL.merged"
                 fi
               else
                 cp -a "$REMOTE" "$LOCAL"
                 echo "📥 Ambil file baru: $file"
               fi
-            else
-              echo "⚠️ File remote tidak ditemukan: $REMOTE"
             fi
           done
           echo "has_conflicts=$HAS_CONFLICTS" >> $GITHUB_OUTPUT
 
       - name: Update .last-upstream-commit
-        if: steps.check_new_commit.outputs.no_new_commit == 'false'
+        if: steps.changed_files.outputs.no_new_commit == 'false'
         run: |
           echo "${{ steps.get_latest_commit.outputs.latest_commit }}" > .last-upstream-commit
 
-      - name: Commit if there are changes
-        if: steps.check_new_commit.outputs.no_new_commit == 'false'
-        id: commit_check
+      - name: Commit changes from upstream only
+        if: steps.changed_files.outputs.no_new_commit == 'false'
         run: |
-          # Hanya add file dari upstream dan marker commit
           git add .last-upstream-commit
           git add $(cat changed_files.txt) || true
 
           if ! git diff --cached --quiet; then
-            if [ "${{ steps.changed_files.outputs.changed }}" != "" ]; then
-              if grep -r -q '<<<<<<< LOCAL' luci-app-nikki nikki; then
-                MSG="⚠️ Sync from upstream (ada konflik): ${{ steps.get_latest_commit.outputs.latest_commit }}"
-              else
-                MSG="Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
-              fi
-              echo "changes_detected=true" >> $GITHUB_OUTPUT
-              git commit -m "$MSG"
-              git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
-              git push origin mainrelease
+            if grep -qr '<<<<<<< LOCAL' luci-app-nikki nikki; then
+              MSG="⚠️ Sync from upstream (ada konflik): ${{ steps.get_latest_commit.outputs.latest_commit }}"
+            else
+              MSG="Sync from upstream: ${{ steps.get_latest_commit.outputs.latest_commit }}"
             fi
+            git commit -m "$MSG"
+            git remote set-url origin https://x-access-token:${{ secrets.PAT_WORKFLOW }}@github.com/${{ github.repository }}.git
+            git push origin mainrelease
           else
             echo "No changes to commit"
-            echo "changes_detected=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Notify to Telegram
