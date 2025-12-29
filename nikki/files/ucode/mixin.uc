@@ -74,12 +74,8 @@ if (uci.get('nikki', 'proxy', 'tcp_mode') == 'tun' || uci.get('nikki', 'proxy', 
 }
 
 config['dns'] = {};
-<<<<<<< LOCAL
 config['dns']['enable'] = uci_bool(uci.get('nikki', 'mixin', 'dns_config'));
-=======
-config['dns']['enable'] = uci_bool(uci.get('nikki', 'mixin', 'dns_enabled'));
 config['dns']['cache-algorithm'] = uci.get('nikki', 'mixin', 'dns_cache_algorithm');
->>>>>>> UPSTREAM
 config['dns']['listen'] = uci.get('nikki', 'mixin', 'dns_listen');
 config['dns']['ipv6'] = uci_bool(uci.get('nikki', 'mixin', 'dns_ipv6'));
 config['dns']['enhanced-mode'] = uci.get('nikki', 'mixin', 'dns_mode');
