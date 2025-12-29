@@ -292,12 +292,17 @@ return view.extend({
 
         s.tab('dns', _('DNS Config'));
 
-<<<<<<< LOCAL
         o = s.taboption('dns', form.ListValue, 'dns_config', _('DNS Status'))
         o.optional = false
         o.default = '1';
         o.value('1', _('Enable'))
         o.value('0', _('Disable'))
+
+        o = s.taboption('dns', form.ListValue, 'dns_cache_algorithm', _('DNS Cache Algorithm'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('lru', _('Least Recently Used (LRU)'));
+        o.value('arc', _('Adaptive Replacement Cache (ARC)'));
 
         // Opsi dropdown untuk memilih DNS Listen Port
         var portMode = s.taboption('dns', form.ListValue, 'dns_listen_port_mode', '*' + ' ' + _('DNS Listen Port'));
@@ -333,17 +338,6 @@ return view.extend({
                 : value;
             m.uci.set('nikki', section_id, 'dns_listen', '0.0.0.0:' + port);
         };
-=======
-        o = s.taboption('dns', form.ListValue, 'dns_cache_algorithm', _('DNS Cache Algorithm'));
-        o.optional = true;
-        o.placeholder = _('Unmodified');
-        o.value('lru', _('Least Recently Used (LRU)'));
-        o.value('arc', _('Adaptive Replacement Cache (ARC)'));
-
-        o = s.taboption('dns', form.Value, 'dns_listen', _('DNS Listen'));
-        o.datatype = 'ipaddrport(1)';
-        o.placeholder = _('Unmodified');
->>>>>>> UPSTREAM
 
         o = s.taboption('dns', form.ListValue, 'dns_ipv6', 'IPv6');
         o.optional = true;
