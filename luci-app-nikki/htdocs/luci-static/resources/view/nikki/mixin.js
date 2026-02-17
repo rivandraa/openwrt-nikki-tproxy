@@ -95,14 +95,6 @@ return view.extend({
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
 
-        o = s.taboption('general', form.Value, 'global_client_fingerprint', _('Global Client Fingerprint'));
-        o.placeholder = _('Unmodified');
-        o.value('random', _('Random'));
-        o.value('chrome', 'Chrome');
-        o.value('firefox', 'Firefox');
-        o.value('safari', 'Safari');
-        o.value('edge', 'Edge');
-
         s.tab('external_control', _('External Control Config'));
 
         o = s.taboption('external_control', form.Value, 'ui_path', _('UI Path'));
@@ -375,6 +367,7 @@ return view.extend({
         o.placeholder = _('Unmodified');
         o.value('blacklist', _('Block Mode'));
         o.value('whitelist', _('Allow Mode'));
+        o.value('rule', _('Rule Mode'));
 
         o = s.taboption('dns', form.ListValue, 'fake_ip_cache', _('Fake-IP Cache'));
         o.optional = true;
@@ -389,12 +382,6 @@ return view.extend({
         o.value('1', _('Enable'));
 
         o = s.taboption('dns', form.ListValue, 'dns_doh_prefer_http3', _('DoH Prefer HTTP/3'));
-        o.optional = true;
-        o.placeholder = _('Unmodified');
-        o.value('0', _('Disable'));
-        o.value('1', _('Enable'));
-
-        o = s.taboption('dns', form.ListValue, 'dns_direct_nameserver_follow_policy', _('Direct Nameserver Follow Policy'));
         o.optional = true;
         o.placeholder = _('Unmodified');
         o.value('0', _('Disable'));
@@ -485,6 +472,31 @@ return view.extend({
         so.value('direct-nameserver');
 
         so = o.subsection.option(form.DynamicList, 'nameserver', _('Nameserver'));
+
+        o = s.taboption('dns', form.Flag, 'dns_proxy_server_nameserver_policy', _('Overwrite Proxy Server Nameserver Policy'));
+        o.rmempty = false;
+
+        o = s.taboption('dns', form.SectionValue, '_dns_proxy_server_nameserver_policies', form.TableSection, 'proxy_server_nameserver_policy', _('Edit Proxy Server Nameserver Policies'));
+        o.retain = true;
+        o.depends('dns_proxy_server_nameserver_policy', '1');
+
+        o.subsection.addremove = true;
+        o.subsection.anonymous = true;
+        o.subsection.sortable = true;
+
+        so = o.subsection.option(form.Flag, 'enabled', _('Enable'));
+        so.rmempty = false;
+
+        so = o.subsection.option(form.Value, 'matcher', _('Matcher'));
+        so.rmempty = false;
+
+        so = o.subsection.option(form.DynamicList, 'nameserver', _('Nameserver'));
+
+        o = s.taboption('dns', form.ListValue, 'dns_direct_nameserver_follow_policy', _('Direct Nameserver Follow Policy'));
+        o.optional = true;
+        o.placeholder = _('Unmodified');
+        o.value('0', _('Disable'));
+        o.value('1', _('Enable'));
 
         o = s.taboption('dns', form.Flag, 'dns_nameserver_policy', _('Overwrite Nameserver Policy'));
         o.rmempty = false;
