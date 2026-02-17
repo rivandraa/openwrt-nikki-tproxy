@@ -1,23 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nikki
-<<<<<<< LOCAL
-=======
-PKG_VERSION:=2026.02.08
->>>>>>> UPSTREAM
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/MetaCubeX/mihomo.git
-<<<<<<< LOCAL
 
 PKG_SOURCE_DATE:=2026-01-16
 PKG_SOURCE_VERSION:=11000dccd77625ce31a54ccbeb053a539c5a5631
 PKG_MIRROR_HASH:=e845a0dd39226c026de1d58d2a96dfd21394d7f597331df974e7b0450cd3be83
-=======
-PKG_SOURCE_VERSION:=v1.19.20
-PKG_MIRROR_HASH:=ab83118867b4325139864f5b57c4acef750631c5decfd8d3ba388d5d2afa5e23
->>>>>>> UPSTREAM
 
 PKG_LICENSE:=GPL3.0+
 PKG_MAINTAINER:=***
@@ -45,16 +36,11 @@ define Package/nikki
   CATEGORY:=Network
   TITLE:=A rule based proxy in Go.
   URL:=https://wiki.metacubex.one
-<<<<<<< LOCAL
   DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq +firewall4 +ip-full \
-           +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun
-  PROVIDES:=nikki mihomo
-=======
-  DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq firewall4 +ip-full +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun +kmod-dummy
+           +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun +kmod-dummy
   PROVIDES:=mihomo
   ALTERNATIVES:=\
     300:/usr/bin/mihomo:/usr/libexec/nikki
->>>>>>> UPSTREAM
 endef
 
 define Package/nikki/conffiles
