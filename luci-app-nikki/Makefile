@@ -1,7 +1,11 @@
 include $(TOPDIR)/rules.mk
 
+<<<<<<< LOCAL
 PKG_VERSION:=v1.25.1-Mod
 PKG_RELEASE:=1
+=======
+PKG_VERSION:=1.25.3
+>>>>>>> UPSTREAM
 
 LUCI_TITLE:=LuCI Support for Nikki TProxy
 LUCI_DEPENDS:=+luci-base +nikki

@@ -30,6 +30,11 @@ config['external-ui'] = uci.get('nikki', 'mixin', 'ui_path');
 config['external-ui-name'] = uci.get('nikki', 'mixin', 'ui_name');
 config['external-ui-url'] = uci.get('nikki', 'mixin', 'ui_url');
 config['external-controller'] = uci.get('nikki', 'mixin', 'api_listen');
+config['external-controller-tls'] = uci.get('nikki', 'mixin', 'api_tls_listen');
+config['tls'] = {};
+config['tls']['certificate'] = uci.get('nikki', 'mixin', 'api_tls_cert');
+config['tls']['private-key'] = uci.get('nikki', 'mixin', 'api_tls_key');
+config['tls']['ech-key'] = uci.get('nikki', 'mixin', 'api_tls_ech_key');
 config['secret'] = uci.get('nikki', 'mixin', 'api_secret');
 
 config['allow-lan'] = uci_bool(uci.get('nikki', 'mixin', 'allow_lan'));
@@ -50,6 +55,7 @@ if (uci_bool(uci.get('nikki', 'mixin', 'authentication'))) {
 }
 
 config['tun'] = {};
+<<<<<<< LOCAL
 if (uci.get('nikki', 'proxy', 'tcp_mode') == 'tun' || uci.get('nikki', 'proxy', 'udp_mode') == 'tun') {
 	config['tun']['enable'] = uci_bool(uci.get('nikki', 'mixin', 'tun_config'));
 	config['tun']['auto-route'] = uci_bool(uci.get('nikki', 'mixin', 'auto_route'));
@@ -70,6 +76,16 @@ if (uci.get('nikki', 'proxy', 'tcp_mode') == 'tun' || uci.get('nikki', 'proxy', 
 	}
 } else {
 	config['tun']['enable'] = false;
+=======
+config['tun']['enable'] = uci_bool(uci.get('nikki', 'mixin', 'tun_enabled'));
+config['tun']['device'] = uci.get('nikki', 'mixin', 'tun_device');
+config['tun']['stack'] = uci.get('nikki', 'mixin', 'tun_stack');
+config['tun']['mtu'] = uci_int(uci.get('nikki', 'mixin', 'tun_mtu'));
+config['tun']['gso'] = uci_bool(uci.get('nikki', 'mixin', 'tun_gso'));
+config['tun']['gso-max-size'] = uci_int(uci.get('nikki', 'mixin', 'tun_gso_max_size'));
+if (uci_bool(uci.get('nikki', 'mixin', 'tun_dns_hijack'))) {
+	config['tun']['dns-hijack'] = uci_array(uci.get('nikki', 'mixin', 'tun_dns_hijacks'));
+>>>>>>> UPSTREAM
 }
 
 config['dns'] = {};

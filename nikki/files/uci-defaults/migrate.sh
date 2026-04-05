@@ -10,8 +10,6 @@ mixin_rule_provider=$(uci -q get nikki.mixin.rule_provider); [ -z "$mixin_rule_p
 
 # since v1.19.0
 
-mixin_ui_path=$(uci -q get nikki.mixin.ui_path); [ -z "$mixin_ui_path" ] && uci set nikki.mixin.ui_path=ui
-
 uci show nikki | grep -E 'nikki\.@rule\[[[:digit:]]+\].match=' | sed 's/nikki.@rule\[\([[:digit:]]\+\)\].match=.*/rename nikki.@rule[\1].match=matcher/' | uci batch
 
 # since v1.19.1
@@ -204,6 +202,15 @@ procd=$(uci -q get nikki.procd); [ -z "$procd" ] && {
 # since v1.25.1
 
 dummy_device=$(uci -q get nikki.routing.dummy_device); [ -z "$dummy_device" ] && uci set nikki.routing.dummy_device=nikki-dummy
+
+# since v1.25.2
+
+core=$(uci -q get nikki.core); [ -z "$core" ] && {
+	uci set nikki.core=core
+	uci set nikki.core.redirect_listener_name=redir-in
+	uci set nikki.core.tproxy_listener_name=tproxy-in
+	uci set nikki.core.tun_listener_name=tun-in
+}
 
 # commit
 uci commit nikki
