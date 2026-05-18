@@ -141,14 +141,8 @@ return view.extend({
         };
 
         return m.render();
-<<<<<<< LOCAL
     },
     handleSaveApply: null,
     handleSave: null,
     handleReset: null
 });
-
-=======
-    }
-});
->>>>>>> UPSTREAM
