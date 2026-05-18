@@ -1,7 +1,6 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nikki
-<<<<<<< LOCAL
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
@@ -11,11 +10,6 @@ PKG_SOURCE_DATE:=2026-02-08
 PKG_SOURCE_VERSION:=97f25250a625117106490d62a5243156fde05dd9
 PKG_MIRROR_HASH:=9ea4dca2f24b64d2e7ab054a3b10d12c079b7e252b4422da56fbd92ebadf588b
 
-=======
-PKG_VERSION:=2026.04.08
-PKG_RELEASE:=1
-
->>>>>>> UPSTREAM
 PKG_LICENSE:=GPL3.0+
 PKG_MAINTAINER:=***
 
@@ -40,20 +34,14 @@ include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
 define Package/nikki
   SECTION:=net
   CATEGORY:=Network
-<<<<<<< LOCAL
-  TITLE:=A rule based proxy in Go.
+  TITLE:=Transparent Proxy with Mihomo on OpenWrt.
   URL:=https://wiki.metacubex.one
   DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +yq +firewall4 +ip-full \
          +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy \
-         +kmod-tun +kmod-dummy
+         +kmod-tun +kmod-dummy +mihomo
   PROVIDES:=mihomo
   ALTERNATIVES:=\
     300:/usr/bin/mihomo:/usr/libexec/nikki
-=======
-  TITLE:=Transparent Proxy with Mihomo on OpenWrt.
-  URL:=https://github.com/nikkinikki-org
-  DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle +curl +yq firewall4 +ip-full +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun +kmod-dummy +mihomo
->>>>>>> UPSTREAM
 endef
 
 define Package/nikki/conffiles
@@ -62,7 +50,6 @@ define Package/nikki/conffiles
 endef
 
 define Package/nikki/install
-<<<<<<< LOCAL
 	$(call GoPackage/Package/Install/Bin,$(PKG_INSTALL_DIR))
 
 	$(INSTALL_DIR) $(1)/usr/libexec/
@@ -78,18 +65,6 @@ define Package/nikki/install
 	               $(1)/etc/nikki/run/providers \
 	               $(1)/etc/nikki/run/providers/rule \
 	               $(1)/etc/nikki/run/providers/proxy
-=======
-	$(INSTALL_DIR) $(1)/etc/nikki
-	$(INSTALL_DIR) $(1)/etc/nikki/ucode
-	$(INSTALL_DIR) $(1)/etc/nikki/scripts
-	$(INSTALL_DIR) $(1)/etc/nikki/nftables
-	$(INSTALL_DIR) $(1)/etc/nikki/profiles
-	$(INSTALL_DIR) $(1)/etc/nikki/subscriptions
-	$(INSTALL_DIR) $(1)/etc/nikki/run
-	$(INSTALL_DIR) $(1)/etc/nikki/run/providers
-	$(INSTALL_DIR) $(1)/etc/nikki/run/providers/rule
-	$(INSTALL_DIR) $(1)/etc/nikki/run/providers/proxy
->>>>>>> UPSTREAM
 
 	$(INSTALL_DATA) $(CURDIR)/files/mixin.yaml $(1)/etc/nikki/mixin.yaml
 
@@ -126,7 +101,6 @@ if [ -z $${IPKG_INSTROOT} ]; then
 fi
 endef
 
-<<<<<<< LOCAL
 define Package/nikki/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
@@ -149,10 +123,6 @@ endef
 define Build/Prepare
 	$(Build/Prepare/Default)
 	$(RM) -r $(PKG_BUILD_DIR)/rules/logic_test
-=======
-define Build/Compile
-
->>>>>>> UPSTREAM
 endef
 
 $(eval $(call GoBinPackage,nikki))
